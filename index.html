@@ -77,6 +77,13 @@ button{cursor:pointer;background:none}
 .badge-blue{background:#e3f2fd;color:var(--blue)}
 
 .empty{text-align:center;padding:30px 0;color:var(--text2);font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.7;white-space:nowrap}
+.badge-pending{background:rgba(255,153,0,.16);color:#e08a00}
+.badge-approved{background:rgba(7,193,96,.16);color:var(--green)}
+.badge-rejected{background:rgba(255,59,48,.16);color:var(--danger)}
+.leave-actions{display:flex;gap:8px;margin-top:6px;justify-content:flex-end}
+.btn-approve{background:var(--green);color:#fff;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-reject{background:#fff;color:var(--danger);border:1px solid var(--danger);padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
 
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
@@ -177,7 +184,7 @@ button{cursor:pointer;background:none}
 // ==================== DATA LAYER (localStorage + Supabase sync) ====================
 var STORAGE_KEY = 'nkcq_accounting_v2';
 var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
-var APP_VER = '20260804-staff'; // 版本号：变更后手机自动强制刷新，避免缓存
+var APP_VER = '20260804-leave'; // 版本号：变更后手机自动强制刷新，避免缓存
 (function(){
   // 强制刷新缓存：版本变化或参数带 refresh 时 reload
   try {
@@ -376,17 +383,31 @@ var DB = {
   getSettings() { return this.data.settings; },
 
   // Leave / Attendance
-  addLeave(userId, date, reason) {
+  // status: 'pending' (待批复) | 'approved' (已通过，计入考勤) | 'rejected' (已驳回)
+  addLeave(userId, date, reason, status) {
+    status = status || 'approved';
     var existing = this.data.attendance.find(function(a) { return a.userId === userId && a.date === date; });
     if (existing) {
       existing.reason = reason || '';
+      existing.status = status;
+      existing.decidedAt = status === 'pending' ? null : new Date().toISOString();
       this.pushUpsert('attendance', existing);
     } else {
-      var rec = { id: 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), userId: userId, date: date, reason: reason || '' };
+      var rec = { id: 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), userId: userId, date: date, reason: reason || '', type: 'leave', status: status };
       rec.createdAt = new Date().toISOString();
+      rec.appliedAt = rec.createdAt;
+      rec.decidedAt = status === 'pending' ? null : rec.createdAt;
       this.data.attendance.push(rec);
       this.pushUpsert('attendance', rec);
     }
+    this.save();
+  },
+  setLeaveStatus(userId, date, status) {
+    var rec = this.data.attendance.find(function(a) { return a.userId === userId && a.date === date; });
+    if (!rec) return;
+    rec.status = status;
+    rec.decidedAt = status === 'pending' ? null : new Date().toISOString();
+    this.pushUpsert('attendance', rec);
     this.save();
   },
   deleteLeave(userId, date) {
@@ -397,7 +418,9 @@ var DB = {
   },
   getLeaveDays(userId, year, month) {
     var ms = monthStr(year, month);
-    return this.data.attendance.filter(function(a) { return a.userId === userId && a.date.startsWith(ms); }).length;
+    return this.data.attendance.filter(function(a) {
+      return a.userId === userId && a.date.startsWith(ms) && (a.status === 'approved' || a.status == null);
+    }).length;
   },
 
   addSale(sale) {
@@ -1325,9 +1348,29 @@ function renderAttendance() {
   html += '</div>';
   html += '</div>';
 
+  // Leave approval (boss)
+  var pending = DB.getAttendance().filter(function(a) { return a.status === 'pending'; });
+  html += '<div class="card">';
+  html += '<div class="card-title">请假审批 (' + pending.length + ' 条待处理)</div>';
+  if (pending.length === 0) {
+    html += '<div class="empty">暂无待批复的请假申请</div>';
+  } else {
+    pending.sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(a) {
+      var u = DB.getUsers().find(function(x){ return x.id === a.userId; });
+      html += '<div class="list-item"><div class="li-left">';
+      html += '<div class="li-title">' + (u ? u.name : '员工') + ' · ' + a.date + '</div>';
+      html += '<div class="li-sub">' + (a.reason || '请假') + '</div></div>';
+      html += '<div class="li-right"><div class="leave-actions">';
+      html += '<div class="btn-approve" onclick="approveLeave(\'' + a.userId + '\',\'' + a.date + '\')">通过</div>';
+      html += '<div class="btn-reject" onclick="rejectLeave(\'' + a.userId + '\',\'' + a.date + '\')">驳回</div>';
+      html += '</div></div></div>';
+    });
+  }
+  html += '</div>';
+
   // Register leave
   html += '<div class="card">';
-  html += '<div class="card-title">登记请假</div>';
+  html += '<div class="card-title">登记请假（直接生效）</div>';
   html += '<div class="form-group"><label class="form-label">请假日期</label><input type="date" class="form-input" id="leaveDate" value="' + todayStr() + '"></div>';
   html += '<div class="form-group"><label class="form-label">请假原因（可选）</label><input type="text" class="form-input" id="leaveReason" placeholder="如：事假、病假"></div>';
   html += '<button class="btn btn-primary" onclick="addLeave()">登记请假</button>';
@@ -1362,7 +1405,9 @@ function renderAttendance() {
       html += '<div class="list-item">';
       html += '<div class="li-left"><div class="li-title">📅 ' + a.date + '</div>';
       html += '<div class="li-sub">' + (a.reason || '请假') + '</div></div>';
-      html += '<div class="li-right"><div class="li-del" onclick="deleteLeave(\'' + a.userId + '\',\'' + a.date + '\')">删除</div></div>';
+      html += '<div class="li-right" style="text-align:right">';
+      html += leaveStatusBadge(a.status);
+      html += '<div class="li-del" onclick="deleteLeave(\'' + a.userId + '\',\'' + a.date + '\')">删除</div></div>';
       html += '</div>';
     });
   }
@@ -1390,6 +1435,23 @@ function deleteLeave(userId, date) {
     showToast('已删除');
     render();
   }
+}
+
+function approveLeave(userId, date) {
+  DB.setLeaveStatus(userId, date, 'approved');
+  showToast('已通过，计入考勤');
+  render();
+}
+function rejectLeave(userId, date) {
+  DB.setLeaveStatus(userId, date, 'rejected');
+  showToast('已驳回');
+  render();
+}
+
+function leaveStatusBadge(st) {
+  if (st === 'pending') return '<span class="badge badge-pending">待批复</span>';
+  if (st === 'rejected') return '<span class="badge badge-rejected">已驳回</span>';
+  return '<span class="badge badge-approved">已通过</span>';
 }
 
 // --- Commission (Boss, all staff) ---
@@ -1666,6 +1728,23 @@ function renderStaffSalary() {
   html += '<button class="btn btn-secondary" onclick="addMyLeave()">提交请假</button>';
   html += '</div>';
 
+  // My leave applications (with status)
+  var myLeaves = DB.getAttendance().filter(function(a) { return a.userId === user.id; }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  html += '<div class="card">';
+  html += '<div class="card-title">我的请假申请 (' + myLeaves.length + ')</div>';
+  if (myLeaves.length === 0) {
+    html += '<div class="empty">暂无请假申请</div>';
+  } else {
+    myLeaves.forEach(function(a) {
+      html += '<div class="list-item">';
+      html += '<div class="li-left"><div class="li-title">📅 ' + a.date + '</div>';
+      html += '<div class="li-sub">' + (a.reason || '请假') + '</div></div>';
+      html += '<div class="li-right">' + leaveStatusBadge(a.status) + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
   html += '</div>';
   return html;
 }
@@ -1675,8 +1754,8 @@ function addMyLeave() {
   var date = document.getElementById('myLeaveDate').value;
   var reason = document.getElementById('myLeaveReason').value;
   if (!date) { showToast('请选择日期'); return; }
-  DB.addLeave(user.id, date, reason || '');
-  showToast('请假已提交');
+  DB.addLeave(user.id, date, reason || '', 'pending');
+  showToast('请假申请已提交，待老板批复');
   render();
 }
 
