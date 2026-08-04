@@ -186,7 +186,7 @@ button{cursor:pointer;background:none}
 // ==================== DATA LAYER (localStorage + Supabase sync) ====================
 var STORAGE_KEY = 'nkcq_accounting_v2';
 var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
-var APP_VER = '20260804-sync2'; // 版本号：变更后手机自动强制刷新，避免缓存
+var APP_VER = '20260804-sync4'; // 版本号：变更后手机自动强制刷新，避免缓存
 (function(){
   // 强制刷新缓存：版本变化或参数带 refresh 时 reload
   try {
@@ -216,7 +216,9 @@ var SB_API = {
       'Authorization': 'Bearer ' + SB.key,
       'Content-Type': 'application/json'
     };
-    if (method === 'POST' || method === 'PATCH') headers['Prefer'] = 'return=representation';
+    // POST 用作 upsert（新增或按 on_conflict 更新已有行）；必须带 resolution=merge-duplicates 才能真正更新冲突行，否则会 409 主键冲突
+    if (method === 'POST') headers['Prefer'] = 'return=representation,resolution=merge-duplicates';
+    else if (method === 'PATCH') headers['Prefer'] = 'return=representation';
     var opts = { method: method, headers: headers };
     if (body) opts.body = JSON.stringify(body);
     var res = await fetch(url, opts);
@@ -1893,17 +1895,19 @@ function saveSalarySettings() {
   render();
 }
 
-function saveStaff() {
+async function saveStaff() {
   var users = DB.getUsers();
-  users.forEach(function(u, i) {
+  var ok = true;
+  for (var i = 0; i < users.length; i++) {
     var nameEl = document.getElementById('staffName_' + i);
     var roleEl = document.getElementById('staffRole_' + i);
-    if (nameEl) u.name = nameEl.value;
-    if (roleEl) u.role = roleEl.value;
-    DB.pushUpsert('nkcq_users', { id: u.id, name: u.name, role: u.role, pin: u.pin });
-  });
+    if (nameEl) users[i].name = nameEl.value;
+    if (roleEl) users[i].role = roleEl.value;
+    try { await DB.pushUpsert('nkcq_users', { id: users[i].id, name: users[i].name, role: users[i].role, pin: users[i].pin }); }
+    catch(e) { ok = false; console.warn('push user failed', users[i].id, e); }
+  }
   DB.save();
-  showToast('员工信息已保存');
+  showToast(ok ? '员工信息已保存并同步到云端' : '已本地保存，但同步云端失败');
   render();
 }
 
@@ -1944,16 +1948,18 @@ async function deleteStaff(id) {
   render();
 }
 
-function savePins() {
+async function savePins() {
   var s = DB.getSettings();
   s.bossPin = (document.getElementById('pinBoss').value || '').trim() || '0000';
-  DB.getUsers().forEach(function(u, i) {
+  var ok = true;
+  for (var i = 0; i < DB.getUsers().length; i++) {
     var el = document.getElementById('pin_' + i);
-    if (el) u.pin = (el.value || '').trim() || '0000';
-    DB.pushUpsert('nkcq_users', { id: u.id, name: u.name, role: u.role, pin: u.pin });
-  });
+    if (el) DB.getUsers()[i].pin = (el.value || '').trim() || '0000';
+    try { await DB.pushUpsert('nkcq_users', { id: DB.getUsers()[i].id, name: DB.getUsers()[i].name, role: DB.getUsers()[i].role, pin: DB.getUsers()[i].pin }); }
+    catch(e) { ok = false; console.warn('push pin failed', DB.getUsers()[i].id, e); }
+  }
   DB.updateSettings(s);
-  showToast('PIN 已保存');
+  showToast(ok ? 'PIN 已保存并同步到云端' : '已本地保存，但同步云端失败');
   render();
 }
 
