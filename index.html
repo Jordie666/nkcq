@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="尼克奇宠记账">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>尼克奇宠 · 记账系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--green:#07c160;--green-light:#e8f7ef;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--text2:#999;--border:#eee;--danger:#ee0a24;--orange:#ff976a;--blue:#1989fa}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+input,select,button,textarea{font-family:inherit;font-size:14px;border:none;outline:none}
+button{cursor:pointer;background:none}
+.hidden{display:none!important}
+
+.header{background:var(--green);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.header > div:first-child{flex:1 1 auto;min-width:0;margin-right:8px}
+.header h1{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header .sub{font-size:12px;opacity:.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header .btn-logout{color:#fff;font-size:13px;padding:4px 10px;border:1px solid rgba(255,255,255,.4);border-radius:4px}
+
+.content{padding:12px 16px 80px;min-height:calc(100vh - 52px)}
+
+.btn{display:block;width:100%;padding:13px;border-radius:8px;font-size:15px;font-weight:600;text-align:center;transition:opacity .2s}
+.btn:active{opacity:.7}
+.btn-primary{background:var(--green);color:#fff}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{display:inline-block;width:auto;padding:6px 14px;font-size:13px;border-radius:6px}
+
+.card{background:var(--card);border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:center;justify-content:space-between}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:var(--card);border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-card .label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-card .value{font-size:20px;font-weight:700;color:var(--text)}
+.stat-card .value.green{color:var(--green)}
+.stat-card .value.red{color:var(--danger)}
+.stat-card .value.blue{color:var(--blue)}
+
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--green)}
+.form-textarea{resize:vertical;min-height:60px}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+
+.cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.cat-btn{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:14px 4px;text-align:center;transition:all .2s}
+.cat-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.cat-btn .cat-name{font-size:13px;font-weight:600}
+.cat-btn .cat-icon{font-size:24px;display:block;margin-bottom:4px}
+
+.sub-cat-row{display:flex;gap:8px;margin-bottom:14px}
+.sub-cat-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;text-align:center;font-size:13px;font-weight:600;transition:all .2s}
+.sub-cat-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green)}
+
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+.list-item .li-left{flex:1;min-width:0}
+.list-item .li-title{font-size:14px;font-weight:500;color:var(--text)}
+.list-item .li-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.list-item .li-right{text-align:right;flex-shrink:0;margin-left:8px}
+.list-item .li-amount{font-size:15px;font-weight:600;color:var(--text)}
+.list-item .li-del{color:var(--danger);font-size:12px;margin-top:4px;cursor:pointer}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-orange{background:#fff3e0;color:var(--orange)}
+.badge-blue{background:#e3f2fd;color:var(--blue)}
+
+.empty{text-align:center;padding:30px 0;color:var(--text2);font-size:13px}
+
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
+.tab-item{flex:1;text-align:center;padding:8px 0 6px;cursor:pointer}
+.tab-item .tab-icon{font-size:22px;display:block}
+.tab-item .tab-name{font-size:11px;color:var(--text2);margin-top:2px}
+.tab-item.active .tab-name{color:var(--green)}
+
+.month-bar{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0 12px}
+.month-bar .mb-btn{width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.month-bar .mb-text{font-size:15px;font-weight:600;min-width:100px;text-align:center}
+
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.action-btn{background:var(--card);border-radius:10px;padding:16px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:transform .1s}
+.action-btn:active{transform:scale(.97)}
+.action-btn .ab-icon{font-size:28px;display:block;margin-bottom:6px}
+.action-btn .ab-name{font-size:13px;font-weight:600;color:var(--text)}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--card);border-radius:12px;width:85%;max-width:340px;padding:20px}
+.modal h3{font-size:16px;margin-bottom:12px;text-align:center}
+.modal .modal-btns{display:flex;gap:10px;margin-top:16px}
+.modal .modal-btns .btn{flex:1}
+
+.comm-detail{font-size:12px;color:var(--text2);padding:8px 0}
+.comm-detail .cd-row{display:flex;justify-content:space-between;padding:3px 0}
+.comm-detail .cd-row .cd-val{font-weight:600;color:var(--text)}
+
+.rules-box{background:#fafafa;border-radius:8px;padding:12px;margin-top:12px}
+.rules-box .rb-title{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.rules-box .rb-item{font-size:12px;color:var(--text2);padding:3px 0;line-height:1.6}
+
+.date-picker{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 0 12px}
+.date-picker input{font-size:15px;font-weight:600;text-align:center;border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+
+.staff-select{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.staff-btn{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:12px 4px;text-align:center;transition:all .2s}
+.staff-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.staff-btn .sb-name{font-size:13px;font-weight:600}
+.staff-btn .sb-role{font-size:11px;color:var(--text2);margin-top:2px}
+.staff-btn.active .sb-role{color:var(--green)}
+
+.backup-card{background:#fffde7;border:1px solid #fff9c4;border-radius:10px;padding:14px;margin-bottom:12px}
+.backup-card .bc-title{font-size:14px;font-weight:600;margin-bottom:8px;color:#f57f17}
+.backup-card .bc-text{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+
+/* Login */
+.login-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
+.login-users{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.login-user-btn{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:20px 8px;text-align:center;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.login-user-btn:active{transform:scale(.97)}
+.login-user-btn .role{font-size:16px;font-weight:600;color:var(--text)}
+.login-user-btn .role-tag{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* PIN entry */
+.pin-box{width:100%;max-width:320px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:24px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.pin-input{width:100%;box-sizing:border-box;font-size:28px;letter-spacing:8px;text-align:center;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);outline:none;margin-bottom:6px}
+.pin-input:focus{border-color:var(--green)}
+.pin-error{color:#e54d42;font-size:13px;margin:8px 0 4px}
+.pin-actions{display:flex;gap:10px;margin-top:14px}
+.pin-btn{flex:1;padding:12px;border-radius:10px;text-align:center;font-weight:600;cursor:pointer}
+.pin-btn-back{background:var(--bg);border:2px solid var(--border);color:var(--text)}
+.pin-btn-ok{background:var(--green);color:#fff}
+.pin-btn:active{transform:scale(.97)}
+
+/* Cloud config */
+.config-box{width:100%;max-width:340px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.config-box .form-group{margin-bottom:12px}
+.config-box .form-label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px}
+.btn{display:inline-block;padding:11px 16px;border-radius:10px;font-weight:600;cursor:pointer;text-align:center;border:none;font-size:15px}
+.btn-primary{background:var(--green);color:#fff}
+.btn-secondary{background:var(--bg);border:2px solid var(--border);color:var(--text)}
+.btn-danger{background:#e54d42;color:#fff}
+.btn:active{transform:scale(.97)}
+
+/* Header actions */
+.hdr-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn-sync{background:rgba(7,193,96,.12);color:var(--green);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.btn-sync:active{transform:scale(.97)}
+
+/* Salary card */
+.salary-card{background:linear-gradient(135deg,#07c160,#0aad56);color:#fff;border-radius:12px;padding:18px;margin-bottom:12px}
+.salary-card .sc-label{font-size:13px;opacity:.9}
+.salary-card .sc-total{font-size:30px;font-weight:700;margin:6px 0}
+.salary-card .sc-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;opacity:.95}
+.salary-card .sc-row.bonus{font-weight:600}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+// ==================== DATA LAYER (localStorage + Supabase sync) ====================
+var STORAGE_KEY = 'nkcq_accounting_v2';
+var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
+var APP_VER = '20260801-sync3'; // 版本号：变更后手机自动强制刷新，避免缓存
+(function(){
+  // 强制刷新缓存：版本变化或参数带 refresh 时 reload
+  try {
+    var saved = localStorage.getItem('nkcq_app_ver');
+    var force = /[?&]refresh=1/.test(location.search);
+    if (saved !== APP_VER || force) {
+      localStorage.setItem('nkcq_app_ver', APP_VER);
+      location.reload(true);
+    }
+  } catch(e){}
+})();
+
+// Supabase REST helper
+var SB = { url: '', key: '' };
+// 预填云端配置（公开托管版：4 部手机自动连接，无需手动填）
+var SB_DEFAULT = {
+  url: 'https://vgidwkngensnxkwyedtb.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaWR3a25nZW5zbnhrd3llZHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1NjI5NDMsImV4cCI6MjEwMTEzODk0M30.axQX7PjXeZtCjnQIjKgqpjwfyUcf6wZixsEGMdpt7WM'
+};
+var SB_API = {
+  async request(method, table, query, body) {
+    var url = SB.url + '/rest/v1/' + table;
+    if (query) url += '?' + query;
+    var headers = {
+      'apikey': SB.key,
+      'Authorization': 'Bearer ' + SB.key,
+      'Content-Type': 'application/json'
+    };
+    if (method === 'POST' || method === 'PATCH') headers['Prefer'] = 'return=representation';
+    var opts = { method: method, headers: headers };
+    if (body) opts.body = JSON.stringify(body);
+    var res = await fetch(url, opts);
+    if (!res.ok) {
+      var err; try { err = await res.json(); } catch(e2) { err = {}; }
+      throw new Error(err.message || ('网络请求失败 (' + res.status + ')'));
+    }
+    if (method === 'DELETE') return [];
+    return await res.json();
+  }
+};
+
+var DB = {
+  data: null,
+  sbConfigured: false,
+  init() {
+    // Load Supabase config
+    try {
+      var sbRaw = localStorage.getItem(SB_CONFIG_KEY);
+      if (sbRaw) {
+        var sb = JSON.parse(sbRaw);
+        if (sb.url && sb.key) { SB.url = sb.url; SB.key = sb.key; this.sbConfigured = true; }
+      }
+    } catch(e) {}
+    if (!this.sbConfigured && SB_DEFAULT && SB_DEFAULT.url && SB_DEFAULT.key) {
+      SB.url = SB_DEFAULT.url; SB.key = SB_DEFAULT.key; this.sbConfigured = true;
+    }
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      // Migrate from old v1 key if present
+      var oldRaw = localStorage.getItem('nkcq_accounting_v1');
+      if (oldRaw) {
+        raw = oldRaw;
+        localStorage.setItem(STORAGE_KEY, oldRaw);
+      }
+    }
+    if (raw) {
+      try {
+        this.data = JSON.parse(raw);
+        // Migrate: ensure attendance array exists
+        if (!this.data.attendance) this.data.attendance = [];
+        // Migrate: ensure salary settings exist
+        if (!this.data.settings.baseSalary) {
+          this.data.settings.baseSalary = { manager: 2800, clerk: 2400 };
+          this.data.settings.fullAttendanceBonus = 200;
+        }
+        // Migrate: ensure PINs exist
+        if (!this.data.settings.bossPin) this.data.settings.bossPin = '0000';
+        var DEF_PINS = { manager: '1234', clerk1: '2345', clerk2: '3456' };
+        this.data.users.forEach(function(u) {
+          if (!u.pin) u.pin = DEF_PINS[u.id] || '0000';
+        });
+      } catch(e) {
+        this.data = this.defaultData();
+      }
+    } else {
+      this.data = this.defaultData();
+    }
+    this.save();
+  },
+  saveSBConfig(url, key) {
+    SB.url = url.replace(/\/$/, ''); SB.key = key;
+    this.sbConfigured = true;
+    localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url: SB.url, key: SB.key }));
+  },
+  // Pull all cloud data into local cache (merge by id)
+  async connect() {
+    var tables = ['nkcq_users', 'sales', 'costs', 'daily_tickets', 'attendance', 'settings'];
+    var remote = {};
+    for (var i = 0; i < tables.length; i++) {
+      remote[tables[i]] = await SB_API.request('GET', tables[i], 'select=*');
+    }
+    // users
+    if (remote.nkcq_users && remote.nkcq_users.length) {
+      this.data.users = remote.nkcq_users.map(function(u) {
+        return { id: u.id, name: u.name, role: u.role, pin: u.pin };
+      });
+    }
+    // settings (single row id=1, jsonb data)
+    if (remote.settings && remote.settings.length) {
+      var sd = remote.settings[0].data;
+      if (sd) this.data.settings = sd;
+    }
+    // sales / costs / attendance / tickets -> merge (preserve local + pull remote)
+    this.syncTable('sales', remote.sales || []);
+    this.syncTable('costs', remote.costs || []);
+    this.syncTable('attendance', remote.attendance || []);
+    this.syncTable('tickets', remote.daily_tickets || []);
+    this.save();
+  },
+  tableName(key) {
+    return { sales: 'sales', costs: 'costs', attendance: 'attendance', tickets: 'daily_tickets' }[key];
+  },
+  // Union local + remote by id; upload local-only records so nothing is lost
+  syncTable(key, remoteArr) {
+    var remoteIds = {};
+    var localIds = {};
+    this.data[key].forEach(function(r) { localIds[r.id] = true; });
+    (remoteArr || []).forEach(function(r) {
+      remoteIds[r.id] = true;
+      if (!localIds[r.id]) this.data[key].push(r);
+    }.bind(this));
+    var self = this;
+    this.data[key].forEach(function(r) {
+      if (!remoteIds[r.id]) self.pushUpsert(self.tableName(key), r);
+    });
+  },
+  // Push a single record to cloud (upsert or delete)
+  async pushUpsert(table, record) {
+    if (!this.sbConfigured) return;
+    try { await SB_API.request('POST', table, 'on_conflict=id', record); }
+    catch(e) { console.warn('pushUpsert failed', table, e); }
+  },
+  async pushDelete(table, id) {
+    if (!this.sbConfigured) return;
+    try { await SB_API.request('DELETE', table, 'id=eq.' + encodeURIComponent(id)); }
+    catch(e) { console.warn('pushDelete failed', table, e); }
+  },
+  async pushSettings() {
+    if (!this.sbConfigured) return;
+    try {
+      await SB_API.request('POST', 'settings', 'on_conflict=id', { id: 1, data: this.data.settings });
+    } catch(e) { console.warn('pushSettings failed', e); }
+  },
+  defaultData() {
+    return {
+      users: [
+        { id: 'manager', name: '店长', role: 'manager', pin: '1234' },
+        { id: 'clerk1', name: '店员A', role: 'clerk', pin: '2345' },
+        { id: 'clerk2', name: '店员B', role: 'clerk', pin: '3456' }
+      ],
+      sales: [],
+      costs: [],
+      tickets: [],
+      attendance: [],
+      settings: {
+        storeName: '尼克奇宠',
+        rentAmount: 5000,
+        bossPin: '0000',
+        baseSalary: { manager: 2800, clerk: 2400 },
+        fullAttendanceBonus: 200,
+        commission: {
+          animal: { manager: 0.08, clerk: 0.04 },
+          merchandise: { manager: 0.04, clerk: 0.04 },
+          water: { manager: 0.04, clerk: 0.04 },
+          membershipSingle: 5,
+          membershipDouble: 10
+        },
+        ticketBonus: {
+          baseAmount: 2000,
+          baseBonus: 5,
+          stepAmount: 500,
+          stepBonus: 5
+        }
+      },
+      createdAt: new Date().toISOString()
+    };
+  },
+  save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+  },
+  getUsers() { return this.data.users; },
+  getSales() { return this.data.sales; },
+  getCosts() { return this.data.costs; },
+  getTickets() { return this.data.tickets; },
+  getAttendance() { return this.data.attendance; },
+  getSettings() { return this.data.settings; },
+
+  // Leave / Attendance
+  addLeave(userId, date, reason) {
+    var existing = this.data.attendance.find(function(a) { return a.userId === userId && a.date === date; });
+    if (existing) {
+      existing.reason = reason || '';
+      this.pushUpsert('attendance', existing);
+    } else {
+      var rec = { id: 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), userId: userId, date: date, reason: reason || '' };
+      rec.createdAt = new Date().toISOString();
+      this.data.attendance.push(rec);
+      this.pushUpsert('attendance', rec);
+    }
+    this.save();
+  },
+  deleteLeave(userId, date) {
+    var rec = this.data.attendance.find(function(a) { return a.userId === userId && a.date === date; });
+    this.data.attendance = this.data.attendance.filter(function(a) { return !(a.userId === userId && a.date === date); });
+    if (rec) this.pushDelete('attendance', rec.id);
+    this.save();
+  },
+  getLeaveDays(userId, year, month) {
+    var ms = monthStr(year, month);
+    return this.data.attendance.filter(function(a) { return a.userId === userId && a.date.startsWith(ms); }).length;
+  },
+
+  addSale(sale) {
+    sale.id = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    sale.createdAt = new Date().toISOString();
+    this.data.sales.push(sale);
+    this.pushUpsert('sales', sale);
+    this.save();
+  },
+  deleteSale(id) {
+    this.data.sales = this.data.sales.filter(function(s) { return s.id !== id; });
+    this.pushDelete('sales', id);
+    this.save();
+  },
+  addCost(cost) {
+    cost.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    cost.createdAt = new Date().toISOString();
+    this.data.costs.push(cost);
+    this.pushUpsert('costs', cost);
+    this.save();
+  },
+  deleteCost(id) {
+    this.data.costs = this.data.costs.filter(function(c) { return c.id !== id; });
+    this.pushDelete('costs', id);
+    this.save();
+  },
+  saveTicket(ticket) {
+    var existing = this.data.tickets.find(function(t) { return t.date === ticket.date; });
+    if (existing) {
+      Object.assign(existing, ticket);
+      existing.updatedAt = new Date().toISOString();
+      this.pushUpsert('daily_tickets', existing);
+    } else {
+      ticket.id = 't_' + Date.now();
+      ticket.createdAt = new Date().toISOString();
+      this.data.tickets.push(ticket);
+      this.pushUpsert('daily_tickets', ticket);
+    }
+    this.save();
+  },
+  deleteTicket(date) {
+    var rec = this.data.tickets.find(function(t) { return t.date === date; });
+    this.data.tickets = this.data.tickets.filter(function(t) { return t.date !== date; });
+    if (rec) this.pushDelete('daily_tickets', rec.id);
+    this.save();
+  },
+  updateSettings(settings) {
+    this.data.settings = settings;
+    this.pushSettings();
+    this.save();
+  },
+  exportData() {
+    return JSON.stringify(this.data, null, 2);
+  },
+  importData(jsonStr) {
+    var parsed = JSON.parse(jsonStr);
+    if (!parsed.users || !parsed.sales || !parsed.costs) throw new Error('数据格式不正确');
+    if (!parsed.attendance) parsed.attendance = [];
+    this.data = parsed;
+    this.save();
+  },
+  clearAll() {
+    this.data = this.defaultData();
+    this.save();
+  }
+};
+
+// ==================== CONSTANTS ====================
+var CATEGORIES = {
+  animal: { name: '动物销售', icon: '🦎' },
+  merchandise: { name: '小商品', icon: '🧸' },
+  water: { name: '矿泉水', icon: '💧' },
+  membership: { name: '会员卡', icon: '💳' }
+};
+
+var SUB_CATEGORIES = {
+  single: { name: '单人10次卡', commission: 5 },
+  double: { name: '双人10次卡', commission: 10 }
+};
+
+var COST_CATEGORIES = {
+  rent: '房租',
+  utilities: '水电',
+  feed: '饲料',
+  consumables: '耗材',
+  wages: '工资',
+  merchandise_stock: '小商品进货'
+};
+
+var TICKET_CHANNELS = {
+  wechat: '微信收款',
+  alipay: '支付宝收款',
+  douyin: '抖音团购',
+  cash: '现金'
+};
+
+// ==================== STATE ====================
+var state = {
+  currentUserId: null, // null = login screen; 'boss' or user id
+  loginTarget: null,   // identity being authenticated via PIN
+  loginError: '',
+  currentPage: 'dashboard',
+  viewYear: new Date().getFullYear(),
+  viewMonth: new Date().getMonth() + 1,
+  selectedDate: todayStr(),
+  // form state
+  saleCategory: 'animal',
+  saleSubCategory: 'single',
+  saleStaffId: 'manager',
+  costCategory: 'rent',
+  ticketForm: { wechat: '', alipay: '', douyin: '', cash: '' },
+  // attendance form
+  attStaffId: 'manager',
+  forceConfig: false
+};
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function monthStr(y, m) { return y + '-' + String(m).padStart(2,'0'); }
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+function fmtMoney(n) { return '¥' + Number(n).toFixed(2); }
+function fmtDate(d) {
+  var parts = d.split('-');
+  return parts[1] + '/' + parts[2];
+}
+function round2(n) { return Math.round(n * 100) / 100; }
+
+// ==================== USERS ====================
+function getCurrentUser() {
+  if (state.currentUserId === 'boss') return { id: 'boss', role: 'boss', name: '老板' };
+  return DB.getUsers().find(function(u) { return u.id === state.currentUserId; });
+}
+function isBoss() { return state.currentUserId === 'boss'; }
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+// ==================== COMMISSION ====================
+function calcCommission(userId, year, month) {
+  var users = DB.getUsers();
+  var user = users.find(function(u) { return u.id === userId; });
+  if (!user) return null;
+  var isManager = user.role === 'manager';
+  var ms = monthStr(year, month);
+  var monthSales = DB.getSales().filter(function(s) { return s.userId === userId && s.date.startsWith(ms); });
+
+  var animalSales = monthSales.filter(function(s) { return s.category === 'animal'; });
+  var animalTotal = animalSales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+  var animalRate = isManager ? 0.08 : 0.04;
+  var animalComm = round2(animalTotal * animalRate);
+
+  var merchSales = monthSales.filter(function(s) { return s.category === 'merchandise'; });
+  var merchTotal = merchSales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+  var merchComm = round2(merchTotal * 0.04);
+
+  var waterSales = monthSales.filter(function(s) { return s.category === 'water'; });
+  var waterTotal = waterSales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+  var waterComm = round2(waterTotal * 0.04);
+
+  var singleCards = monthSales.filter(function(s) { return s.category === 'membership' && s.subCategory === 'single'; });
+  var doubleCards = monthSales.filter(function(s) { return s.category === 'membership' && s.subCategory === 'double'; });
+  var singleCount = singleCards.reduce(function(sum, s) { return sum + (s.quantity || 1); }, 0);
+  var doubleCount = doubleCards.reduce(function(sum, s) { return sum + (s.quantity || 1); }, 0);
+  var membComm = singleCount * 5 + doubleCount * 10;
+
+  // Ticket bonus
+  var ticketData = DB.getTickets().filter(function(d) { return d.date.startsWith(ms); });
+  var userWorkDates = {};
+  monthSales.forEach(function(s) { userWorkDates[s.date] = true; });
+  var ticketBonus = 0;
+  var ticketDetail = [];
+  var settings = DB.getSettings();
+  var tb = settings.ticketBonus;
+  ticketData.forEach(function(d) {
+    var total = (d.wechat||0) + (d.alipay||0) + (d.douyin||0) + (d.cash||0);
+    if (total >= tb.baseAmount && userWorkDates[d.date]) {
+      var bonus = tb.baseBonus * (1 + Math.floor((total - tb.baseAmount) / tb.stepAmount));
+      ticketBonus += bonus;
+      ticketDetail.push({ date: d.date, total: total, bonus: bonus });
+    }
+  });
+
+  var total = round2(animalComm + merchComm + waterComm + membComm + ticketBonus);
+
+  return {
+    animal: { sales: animalTotal, count: animalSales.length, rate: animalRate, comm: animalComm },
+    merch: { sales: merchTotal, count: merchSales.length, rate: 0.04, comm: merchComm },
+    water: { sales: waterTotal, count: waterSales.length, rate: 0.04, comm: waterComm },
+    memb: { single: singleCount, double: doubleCount, comm: membComm },
+    ticket: { bonus: ticketBonus, detail: ticketDetail },
+    total: total,
+    userName: user.name,
+    role: user.role
+  };
+}
+
+// ==================== SALARY ====================
+function calcSalary(userId, year, month) {
+  var user = DB.getUsers().find(function(u) { return u.id === userId; });
+  if (!user) return null;
+  var settings = DB.getSettings();
+  var base = settings.baseSalary[user.role] || 0;
+  var totalDays = daysInMonth(year, month);
+  var leaveDays = DB.getLeaveDays(userId, year, month);
+  var attendedDays = totalDays - leaveDays;
+  var salary = round2(base / totalDays * attendedDays);
+  var fullAttendance = leaveDays === 0;
+  var bonus = 0;
+  if (fullAttendance) {
+    bonus = settings.fullAttendanceBonus || 0;
+    salary = round2(salary + bonus);
+  }
+  return {
+    base: base,
+    totalDays: totalDays,
+    leaveDays: leaveDays,
+    attendedDays: attendedDays,
+    salary: salary,
+    fullAttendance: fullAttendance,
+    bonus: bonus,
+    userName: user.name,
+    role: user.role
+  };
+}
+
+function calcStoreSummary(year, month) {
+  var ms = monthStr(year, month);
+  var allSales = DB.getSales().filter(function(s) { return s.date.startsWith(ms); });
+  var allCosts = DB.getCosts().filter(function(c) { return c.date.startsWith(ms); });
+  var totalSales = allSales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+  var totalCosts = allCosts.reduce(function(sum, c) { return sum + c.amount; }, 0);
+
+  var staffUsers = DB.getUsers();
+  var totalComm = 0;
+  var totalSalary = 0;
+  var staffComms = staffUsers.map(function(u) {
+    var c = calcCommission(u.id, year, month);
+    var sa = calcSalary(u.id, year, month);
+    totalComm += c.total;
+    totalSalary += sa.salary;
+    return { user: u, comm: c, salary: sa };
+  });
+
+  var ticketData = DB.getTickets().filter(function(d) { return d.date.startsWith(ms); });
+  var ticketTotal = ticketData.reduce(function(sum, d) {
+    return sum + (d.wechat||0) + (d.alipay||0) + (d.douyin||0) + (d.cash||0);
+  }, 0);
+
+  return {
+    totalSales: round2(totalSales),
+    totalCosts: round2(totalCosts),
+    netProfit: round2(totalSales - totalCosts),
+    totalComm: round2(totalComm),
+    totalSalary: round2(totalSalary),
+    ticketTotal: round2(ticketTotal),
+    staffComms: staffComms,
+    allSales: allSales,
+    allCosts: allCosts,
+    ticketCount: ticketData.length
+  };
+}
+
+// ==================== RENDER ====================
+function render() {
+  var app = document.getElementById('app');
+
+  // Cloud config screen (first time / not configured / force edit)
+  if (!DB.sbConfigured || state.forceConfig) {
+    app.innerHTML = renderConfig();
+    return;
+  }
+
+  // Login screen
+  if (!state.currentUserId) {
+    app.innerHTML = renderLogin();
+    return;
+  }
+
+  var user = getCurrentUser();
+  var page = state.currentPage;
+  var html = '';
+
+  if (isBoss()) {
+    html += renderHeader();
+    if (page === 'dashboard') html += renderBossDashboard();
+    else if (page === 'sales') html += renderBossSales();
+    else if (page === 'costs') html += renderCosts();
+    else if (page === 'tickets') html += renderTickets();
+    else if (page === 'attendance') html += renderAttendance();
+    else if (page === 'commission') html += renderBossCommission();
+    else if (page === 'settings') html += renderSettings();
+    html += renderTabbar();
+  } else {
+    html += renderHeader();
+    if (page === 'dashboard') html += renderStaffDashboard();
+    else if (page === 'entry') html += renderStaffEntry();
+    else if (page === 'records') html += renderStaffRecords();
+    else if (page === 'salary') html += renderStaffSalary();
+    html += renderTabbar();
+  }
+
+  app.innerHTML = html;
+  if (page === 'tickets' && isBoss()) setTimeout(updateTicketLive, 0);
+}
+
+function renderHeader() {
+  var user = getCurrentUser();
+  var s = DB.getSettings();
+  var html = '<div class="header">';
+  html += '<div><h1>' + s.storeName + ' · 记账</h1>';
+  html += '<div class="sub">' + user.name + ' · 云端同步版 v2</div></div>';
+  html += '<div class="hdr-actions">';
+  html += '<div class="btn-sync" onclick="manualSync()" title="从云端拉取最新数据">⇅ 同步</div>';
+  html += '<div class="btn-logout" onclick="logout()">切换</div>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+async function manualSync() {
+  if (!DB.sbConfigured) return;
+  try {
+    await DB.connect();
+    render();
+    showToast('已同步最新数据');
+  } catch(e) {
+    showToast('同步失败：' + e.message);
+  }
+}
+
+function renderTabbar() {
+  var page = state.currentPage;
+  var tabs;
+  if (isBoss()) {
+    tabs = [
+      { id: 'dashboard', icon: '📊', name: '总览' },
+      { id: 'sales', icon: '💰', name: '销售' },
+      { id: 'costs', icon: '💸', name: '成本' },
+      { id: 'tickets', icon: '🎫', name: '门票' },
+      { id: 'attendance', icon: '📅', name: '考勤' },
+      { id: 'commission', icon: '🏆', name: '提成' }
+    ];
+  } else {
+    tabs = [
+      { id: 'dashboard', icon: '📊', name: '总览' },
+      { id: 'entry', icon: '💰', name: '录入' },
+      { id: 'records', icon: '📋', name: '记录' },
+      { id: 'salary', icon: '🏆', name: '薪资' }
+    ];
+  }
+  var html = '<div class="tabbar">';
+  tabs.forEach(function(t) {
+    html += '<div class="tab-item' + (page === t.id ? ' active' : '') + '" onclick="navigate(\'' + t.id + '\')">';
+    html += '<span class="tab-icon">' + t.icon + '</span>';
+    html += '<span class="tab-name">' + t.name + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function navigate(page) {
+  state.currentPage = page;
+  render();
+}
+
+function logout() {
+  state.currentUserId = null;
+  state.loginTarget = null;
+  state.loginError = '';
+  state.currentPage = 'dashboard';
+  render();
+}
+
+// --- Cloud config ---
+function renderConfig() {
+  var html = '<div class="login-page">';
+  html += '<div class="login-logo">🐾</div>';
+  html += '<div class="login-title">尼克奇宠 · 记账系统</div>';
+  html += '<div class="login-sub">首次使用：连接云端数据库</div>';
+  html += '<div class="config-box">';
+  html += '<div class="form-group"><label class="form-label">Supabase URL</label><input type="text" class="form-input" id="cfgUrl" value="' + (SB.url||'') + '"></div>';
+  html += '<div class="form-group"><label class="form-label">Supabase Anon Key</label><input type="text" class="form-input" id="cfgKey" value="' + (SB.key||'') + '"></div>';
+  html += '<div id="cfgMsg" style="font-size:13px;color:#e54d42;min-height:18px;margin:4px 0"></div>';
+  html += '<button class="btn btn-primary" style="width:100%" onclick="connectSB()">连接并进入</button>';
+  html += '<div style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.7">';
+  html += '① 在 supabase.com 建项目 → SQL Editor 运行脚本建表<br>';
+  html += '② Settings → API 复制 Project URL 和 Publishable key<br>';
+  html += '③ 填到上面 → 连接。之后 4 台手机各填一次即可同步';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+async function connectSB() {
+  var url = document.getElementById('cfgUrl').value.trim();
+  var key = document.getElementById('cfgKey').value.trim();
+  var msg = document.getElementById('cfgMsg');
+  if (!url || !key) { msg.textContent = '请填写 URL 和 Key'; return; }
+  msg.style.color = '#07c160';
+  msg.textContent = '连接中...';
+  DB.saveSBConfig(url, key);
+  try {
+    await DB.connect();
+    msg.textContent = '连接成功！';
+    state.forceConfig = false;
+    setTimeout(render, 300);
+  } catch(e) {
+    msg.style.color = '#e54d42';
+    msg.textContent = '连接失败：' + e.message + '（请检查 URL/Key 或网络）';
+    DB.sbConfigured = false;
+  }
+}
+
+// --- Login ---
+function renderLogin() {
+  var html = '<div class="login-page">';
+  html += '<div class="login-logo">🐾</div>';
+  html += '<div class="login-title">尼克奇宠 · 记账系统</div>';
+
+  if (!state.loginTarget) {
+    // Step 1: choose identity
+    html += '<div class="login-sub">请选择身份登录</div>';
+    html += '<div class="login-users">';
+    html += '<div class="login-user-btn" onclick="startLogin(\'boss\')">';
+    html += '<div class="role">老板</div><div class="role-tag">店主 / 全部权限</div></div>';
+    DB.getUsers().forEach(function(u) {
+      html += '<div class="login-user-btn" onclick="startLogin(\'' + u.id + '\')">';
+      html += '<div class="role">' + u.name + '</div>';
+      html += '<div class="role-tag">' + (u.role === 'manager' ? '店长' : '店员') + ' · 仅本人</div></div>';
+    });
+    html += '</div>';
+    html += '<div style="margin-top:24px;font-size:12px;color:var(--text2);text-align:center;line-height:1.6">';
+    html += '云端同步版 · 数据自动云端同步<br>请输入对应 PIN 才能登录';
+    html += '</div>';
+  } else {
+    // Step 2: enter PIN
+    var label = state.loginTarget === 'boss' ? '老板' : (DB.getUsers().find(function(u){return u.id===state.loginTarget;})||{}).name;
+    html += '<div class="login-sub">正在以「' + label + '」登录</div>';
+    html += '<div class="pin-box">';
+    html += '<div style="font-size:14px;color:var(--text2);margin-bottom:12px">请输入 4 位 PIN 码</div>';
+    html += '<input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autofocus onkeydown="if(event.key===\'Enter\')confirmLogin()">';
+    if (state.loginError) {
+      html += '<div class="pin-error">' + state.loginError + '</div>';
+    }
+    html += '<div class="pin-actions">';
+    html += '<div class="pin-btn pin-btn-back" onclick="backToRoles()">返回</div>';
+    html += '<div class="pin-btn pin-btn-ok" onclick="confirmLogin()">登录</div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function startLogin(id) {
+  state.loginTarget = id;
+  state.loginError = '';
+  render();
+}
+
+function backToRoles() {
+  state.loginTarget = null;
+  state.loginError = '';
+  render();
+}
+
+function confirmLogin() {
+  var input = document.getElementById('pinInput');
+  var pin = input ? input.value.trim() : '';
+  var target = state.loginTarget;
+  var correct;
+  if (target === 'boss') {
+    correct = DB.getSettings().bossPin || '0000';
+  } else {
+    var u = DB.getUsers().find(function(x){ return x.id === target; });
+    correct = u ? u.pin : null;
+  }
+  if (pin === correct) {
+    state.currentUserId = target;
+    state.loginTarget = null;
+    state.loginError = '';
+    state.currentPage = 'dashboard';
+    render();
+  } else {
+    state.loginError = 'PIN 错误，请重试';
+    render();
+  }
+}
+
+function loginAs(id) {
+  state.currentUserId = id;
+  state.currentPage = 'dashboard';
+  render();
+}
+
+// --- Month Bar ---
+function renderMonthBar() {
+  var html = '<div class="month-bar">';
+  html += '<div class="mb-btn" onclick="changeMonth(-1)">‹</div>';
+  html += '<div class="mb-text">' + state.viewYear + '年' + state.viewMonth + '月</div>';
+  html += '<div class="mb-btn" onclick="changeMonth(1)">›</div>';
+  html += '</div>';
+  return html;
+}
+function changeMonth(delta) {
+  state.viewMonth += delta;
+  if (state.viewMonth > 12) { state.viewMonth = 1; state.viewYear++; }
+  if (state.viewMonth < 1) { state.viewMonth = 12; state.viewYear--; }
+  render();
+}
+
+// --- Boss Dashboard ---
+function renderBossDashboard() {
+  var summary = calcStoreSummary(state.viewYear, state.viewMonth);
+  var todaySales = DB.getSales().filter(function(s) { return s.date === todayStr(); });
+  var todayTotal = todaySales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">今日概览 <span style="font-size:12px;color:var(--text2)">' + todayStr() + '</span></div>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat-card"><div class="label">今日销售</div><div class="value green">' + fmtMoney(todayTotal) + '</div></div>';
+  html += '<div class="stat-card"><div class="label">今日笔数</div><div class="value blue">' + todaySales.length + '</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月汇总</div>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat-card"><div class="label">月销售额</div><div class="value green">' + fmtMoney(summary.totalSales) + '</div></div>';
+  html += '<div class="stat-card"><div class="label">月成本</div><div class="value red">' + fmtMoney(summary.totalCosts) + '</div></div>';
+  html += '<div class="stat-card"><div class="label">门票总额</div><div class="value blue">' + fmtMoney(summary.ticketTotal) + '</div></div>';
+  html += '<div class="stat-card"><div class="label">应付提成</div><div class="value">' + fmtMoney(summary.totalComm) + '</div></div>';
+  html += '</div>';
+  html += '<div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:14px">';
+  html += '<span style="color:var(--text2)">净利润</span>';
+  var profitColor = summary.netProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+  html += '<span style="font-weight:700;color:' + profitColor + '">' + fmtMoney(summary.netProfit) + '</span>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="action-grid">';
+  html += '<div class="action-btn" onclick="navigate(\'sales\')"><span class="ab-icon">💰</span><span class="ab-name">录入销售</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'costs\')"><span class="ab-icon">💸</span><span class="ab-name">录入成本</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'tickets\')"><span class="ab-icon">🎫</span><span class="ab-name">录入门票</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'attendance\')"><span class="ab-icon">📅</span><span class="ab-name">考勤管理</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'commission\')"><span class="ab-icon">🏆</span><span class="ab-name">提成薪资</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'settings\')"><span class="ab-icon">⚙️</span><span class="ab-name">设置/备份</span></div>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月薪资预览</div>';
+  summary.staffComms.forEach(function(sc) {
+    html += '<div class="list-item">';
+    html += '<div class="li-left"><div class="li-title">' + sc.user.name + '</div>';
+    html += '<div class="li-sub">' + (sc.user.role === 'manager' ? '店长' : '店员') + ' · 提成' + fmtMoney(sc.comm.total) + '</div></div>';
+    html += '<div class="li-right"><div class="li-amount green">' + fmtMoney(sc.salary.salary) + '</div>';
+    html += '<div style="font-size:11px;color:var(--text2)">含全勤' + (sc.salary.fullAttendance ? '✓' : '✗') + '</div></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+// --- Boss Sales (all staff) ---
+function renderBossSales() {
+  var ms = monthStr(state.viewYear, state.viewMonth);
+  var monthSales = DB.getSales().filter(function(s) { return s.date.startsWith(ms); }).sort(function(a,b) { return b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt); });
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">录入销售（代录入）</div>';
+
+  html += '<label class="form-label">销售人员</label>';
+  html += '<div class="staff-select">';
+  DB.getUsers().forEach(function(u) {
+    html += '<div class="staff-btn' + (state.saleStaffId === u.id ? ' active' : '') + '" onclick="selectStaff(\'' + u.id + '\')">';
+    html += '<div class="sb-name">' + u.name + '</div>';
+    html += '<div class="sb-role">' + (u.role === 'manager' ? '店长' : '店员') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<label class="form-label">销售类别</label>';
+  html += '<div class="cat-grid">';
+  Object.keys(CATEGORIES).forEach(function(key) {
+    var cat = CATEGORIES[key];
+    html += '<div class="cat-btn' + (state.saleCategory === key ? ' active' : '') + '" onclick="selectCategory(\'' + key + '\')">';
+    html += '<span class="cat-icon">' + cat.icon + '</span><span class="cat-name">' + cat.name + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  if (state.saleCategory === 'membership') {
+    html += '<label class="form-label">会员卡类型</label>';
+    html += '<div class="sub-cat-row">';
+    html += '<div class="sub-cat-btn' + (state.saleSubCategory === 'single' ? ' active' : '') + '" onclick="selectSubCategory(\'single\')">单人10次卡</div>';
+    html += '<div class="sub-cat-btn' + (state.saleSubCategory === 'double' ? ' active' : '') + '" onclick="selectSubCategory(\'double\')">双人10次卡</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + state.selectedDate + '"></div>';
+
+  if (state.saleCategory === 'membership') {
+    html += '<div class="form-group"><label class="form-label">售出数量（张）</label><input type="number" class="form-input" id="saleQty" value="1" min="1" placeholder="数量"></div>';
+  } else {
+    html += '<div class="form-group"><label class="form-label">金额（元）</label><input type="number" class="form-input" id="saleAmount" placeholder="0.00" step="0.01"></div>';
+  }
+
+  html += '<div class="form-group"><label class="form-label">备注（可选）</label><input type="text" class="form-input" id="saleNote" placeholder="如：仓鼠、蜥蜴等"></div>';
+  html += '<button class="btn btn-primary" onclick="addSale()">添加记录</button>';
+  html += '</div>';
+
+  // List grouped by staff
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月销售记录 (' + monthSales.length + ')</div>';
+  if (monthSales.length === 0) {
+    html += '<div class="empty">暂无记录</div>';
+  } else {
+    monthSales.forEach(function(s) {
+      var cat = CATEGORIES[s.category] || { name: s.category, icon: '' };
+      var user = DB.getUsers().find(function(u) { return u.id === s.userId; });
+      var subInfo = s.subCategory ? ' (' + (SUB_CATEGORIES[s.subCategory] || {name: s.subCategory}).name + ')' : '';
+      html += '<div class="list-item">';
+      html += '<div class="li-left">';
+      html += '<div class="li-title">' + cat.icon + ' ' + cat.name + subInfo + ' · ' + (user ? user.name : '') + '</div>';
+      html += '<div class="li-sub">' + s.date + (s.note ? ' · ' + s.note : '') + '</div>';
+      html += '</div>';
+      html += '<div class="li-right">';
+      var displayAmount = s.category === 'membership' ? s.quantity + '张' : fmtMoney(s.amount);
+      html += '<div class="li-amount">' + displayAmount + '</div>';
+      html += '<div class="li-del" onclick="deleteSale(\'' + s.id + '\')">删除</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function selectStaff(id) { state.saleStaffId = id; render(); }
+function selectCategory(cat) { state.saleCategory = cat; render(); }
+function selectSubCategory(sub) { state.saleSubCategory = sub; render(); }
+
+function addSale() {
+  var date = document.getElementById('saleDate').value;
+  if (!date) { showToast('请选择日期'); return; }
+  var sale = {
+    userId: state.saleStaffId,
+    date: date,
+    category: state.saleCategory,
+    amount: 0,
+    quantity: 1,
+    note: (document.getElementById('saleNote') || {value:''}).value || ''
+  };
+  if (state.saleCategory === 'membership') {
+    sale.subCategory = state.saleSubCategory;
+    sale.quantity = parseInt(document.getElementById('saleQty').value) || 1;
+    sale.amount = 0;
+  } else {
+    var amount = parseFloat(document.getElementById('saleAmount').value);
+    if (!amount || amount <= 0) { showToast('请输入金额'); return; }
+    sale.amount = amount;
+  }
+  DB.addSale(sale);
+  showToast('已添加');
+  if (state.saleCategory !== 'membership') document.getElementById('saleAmount').value = '';
+  document.getElementById('saleNote').value = '';
+  render();
+}
+
+function deleteSale(id) {
+  if (confirm('确定删除这条销售记录？')) {
+    DB.deleteSale(id);
+    showToast('已删除');
+    render();
+  }
+}
+
+// --- Costs ---
+function renderCosts() {
+  var ms = monthStr(state.viewYear, state.viewMonth);
+  var monthCosts = DB.getCosts().filter(function(c) { return c.date.startsWith(ms); }).sort(function(a,b) { return b.date.localeCompare(a.date); });
+  var totalCosts = monthCosts.reduce(function(sum, c) { return sum + c.amount; }, 0);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">录入成本</div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="costDate" value="' + todayStr() + '"></div>';
+
+  html += '<label class="form-label">成本类别</label>';
+  html += '<div class="cat-grid">';
+  Object.keys(COST_CATEGORIES).forEach(function(key) {
+    html += '<div class="cat-btn' + (state.costCategory === key ? ' active' : '') + '" onclick="selectCostCat(\'' + key + '\')">';
+    html += '<span class="cat-name">' + COST_CATEGORIES[key] + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  var defaultAmount = state.costCategory === 'rent' ? DB.getSettings().rentAmount : '';
+  html += '<div class="form-group"><label class="form-label">金额（元）</label><input type="number" class="form-input" id="costAmount" placeholder="0.00" step="0.01" value="' + defaultAmount + '"></div>';
+  html += '<div class="form-group"><label class="form-label">备注（可选）</label><input type="text" class="form-input" id="costNote" placeholder="备注"></div>';
+  html += '<button class="btn btn-primary" onclick="addCost()">添加成本</button>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月成本合计</div>';
+  html += '<div style="font-size:24px;font-weight:700;color:var(--danger)">' + fmtMoney(totalCosts) + '</div>';
+  var byCategory = {};
+  monthCosts.forEach(function(c) { byCategory[c.category] = (byCategory[c.category] || 0) + c.amount; });
+  Object.keys(byCategory).forEach(function(key) {
+    html += '<div class="list-item"><div class="li-left"><div class="li-title">' + (COST_CATEGORIES[key] || key) + '</div></div>';
+    html += '<div class="li-right"><div class="li-amount">' + fmtMoney(byCategory[key]) + '</div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">成本明细 (' + monthCosts.length + ')</div>';
+  if (monthCosts.length === 0) {
+    html += '<div class="empty">暂无记录</div>';
+  } else {
+    monthCosts.forEach(function(c) {
+      html += '<div class="list-item">';
+      html += '<div class="li-left"><div class="li-title">' + (COST_CATEGORIES[c.category] || c.category) + '</div>';
+      html += '<div class="li-sub">' + c.date + (c.note ? ' · ' + c.note : '') + '</div></div>';
+      html += '<div class="li-right"><div class="li-amount">' + fmtMoney(c.amount) + '</div>';
+      html += '<div class="li-del" onclick="deleteCost(\'' + c.id + '\')">删除</div></div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function selectCostCat(cat) { state.costCategory = cat; render(); }
+
+function addCost() {
+  var date = document.getElementById('costDate').value;
+  var amount = parseFloat(document.getElementById('costAmount').value);
+  var note = document.getElementById('costNote').value;
+  if (!date) { showToast('请选择日期'); return; }
+  if (!amount || amount <= 0) { showToast('请输入金额'); return; }
+  DB.addCost({ date: date, category: state.costCategory, amount: amount, note: note || '' });
+  showToast('已添加');
+  document.getElementById('costAmount').value = '';
+  document.getElementById('costNote').value = '';
+  render();
+}
+
+function deleteCost(id) {
+  if (confirm('确定删除这条成本记录？')) {
+    DB.deleteCost(id);
+    showToast('已删除');
+    render();
+  }
+}
+
+// --- Tickets ---
+function renderTickets() {
+  var ms = monthStr(state.viewYear, state.viewMonth);
+  var monthTickets = DB.getTickets().filter(function(t) { return t.date.startsWith(ms); }).sort(function(a,b) { return b.date.localeCompare(a.date); });
+  var totalTickets = monthTickets.reduce(function(sum, t) {
+    return sum + (t.wechat||0) + (t.alipay||0) + (t.douyin||0) + (t.cash||0);
+  }, 0);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">录入每日门票</div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="ticketDate" value="' + todayStr() + '"></div>';
+
+  var existing = DB.getTickets().find(function(t) { return t.date === document.getElementById && false; });
+  var tf = { wechat: '', alipay: '', douyin: '', cash: '' };
+
+  Object.keys(TICKET_CHANNELS).forEach(function(key) {
+    html += '<div class="form-group"><label class="form-label">' + TICKET_CHANNELS[key] + '（元）</label>';
+    html += '<input type="number" class="form-input" id="ticket_' + key + '" placeholder="0.00" step="0.01" value="' + (tf[key] || '') + '"></div>';
+  });
+
+  html += '<div style="text-align:center;padding:8px;background:var(--green-light);border-radius:8px;margin-bottom:12px">';
+  html += '<span style="font-size:12px;color:var(--text2)">当日门票合计：</span>';
+  html += '<span id="ticketLiveTotal" style="font-size:20px;font-weight:700;color:var(--green)">' + fmtMoney(0) + '</span></div>';
+
+  html += '<div id="bonusPreview" style="text-align:center;padding:8px;background:#fff3e0;border-radius:8px;margin-bottom:12px;font-size:12px;color:var(--orange)"></div>';
+
+  html += '<button class="btn btn-primary" onclick="saveTicket()">保存门票数据</button>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月门票合计</div>';
+  html += '<div style="font-size:24px;font-weight:700;color:var(--blue)">' + fmtMoney(totalTickets) + '</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-top:4px">' + monthTickets.length + '天有记录</div>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">门票明细</div>';
+  if (monthTickets.length === 0) {
+    html += '<div class="empty">暂无记录</div>';
+  } else {
+    monthTickets.forEach(function(t) {
+      var total = (t.wechat||0) + (t.alipay||0) + (t.douyin||0) + (t.cash||0);
+      var settings = DB.getSettings();
+      var tb = settings.ticketBonus;
+      var bonus = 0;
+      if (total >= tb.baseAmount) {
+        bonus = tb.baseBonus * (1 + Math.floor((total - tb.baseAmount) / tb.stepAmount));
+      }
+      html += '<div class="list-item">';
+      html += '<div class="li-left">';
+      html += '<div class="li-title">🎫 ' + t.date + '</div>';
+      html += '<div class="li-sub">微信' + (t.wechat||0) + ' / 支付宝' + (t.alipay||0) + ' / 抖音' + (t.douyin||0) + ' / 现金' + (t.cash||0);
+      if (bonus > 0) html += ' · 奖金' + bonus + '元/人';
+      html += '</div>';
+      html += '</div>';
+      html += '<div class="li-right"><div class="li-amount">' + fmtMoney(total) + '</div>';
+      html += '<div class="li-del" onclick="deleteTicket(\'' + t.date + '\')">删除</div></div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="card"><div class="rules-box">';
+  html += '<div class="rb-title">门票奖金规则</div>';
+  var tb = DB.getSettings().ticketBonus;
+  html += '<div class="rb-item">· 当日门票总额 ≥ ' + tb.baseAmount + '元：每人奖金' + tb.baseBonus + '元</div>';
+  html += '<div class="rb-item">· 每增加' + tb.stepAmount + '元：奖金增加' + tb.stepBonus + '元/人</div>';
+  html += '<div class="rb-item">· 当日有销售记录的员工才获得奖金</div>';
+  html += '</div></div>';
+
+  html += '</div>';
+  return html;
+}
+
+function updateTicketLive() {
+  var keys = ['wechat','alipay','douyin','cash'];
+  var total = 0;
+  keys.forEach(function(k) {
+    var el = document.getElementById('ticket_' + k);
+    if (el) {
+      el.addEventListener('input', updateTicketLive);
+      total += parseFloat(el.value) || 0;
+    }
+  });
+  var totalEl = document.getElementById('ticketLiveTotal');
+  if (totalEl) totalEl.textContent = fmtMoney(total);
+  var settings = DB.getSettings();
+  var tb = settings.ticketBonus;
+  var bonusEl = document.getElementById('bonusPreview');
+  if (bonusEl) {
+    if (total >= tb.baseAmount) {
+      var bonus = tb.baseBonus * (1 + Math.floor((total - tb.baseAmount) / tb.stepAmount));
+      bonusEl.innerHTML = '当日奖金：每人 <b style="font-size:16px">' + bonus + '元</b>';
+    } else {
+      bonusEl.innerHTML = '还需 ' + (tb.baseAmount - total).toFixed(2) + ' 元达到奖金门槛';
+    }
+  }
+}
+
+function saveTicket() {
+  var date = document.getElementById('ticketDate').value;
+  if (!date) { showToast('请选择日期'); return; }
+  var ticket = { date: date };
+  var hasValue = false;
+  Object.keys(TICKET_CHANNELS).forEach(function(key) {
+    var val = parseFloat(document.getElementById('ticket_' + key).value) || 0;
+    ticket[key] = val;
+    if (val > 0) hasValue = true;
+  });
+  if (!hasValue) { showToast('请至少填写一个渠道'); return; }
+  DB.saveTicket(ticket);
+  showToast('已保存');
+  render();
+}
+
+function deleteTicket(date) {
+  if (confirm('确定删除 ' + date + ' 的门票数据？')) {
+    DB.deleteTicket(date);
+    showToast('已删除');
+    render();
+  }
+}
+
+// --- Attendance (Boss) ---
+function renderAttendance() {
+  var ms = monthStr(state.viewYear, state.viewMonth);
+  var s = DB.getSettings();
+  var totalDays = daysInMonth(state.viewYear, state.viewMonth);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  // Staff selector
+  html += '<div class="card">';
+  html += '<div class="card-title">选择员工</div>';
+  html += '<div class="staff-select">';
+  DB.getUsers().forEach(function(u) {
+    html += '<div class="staff-btn' + (state.attStaffId === u.id ? ' active' : '') + '" onclick="selectAttStaff(\'' + u.id + '\')">';
+    html += '<div class="sb-name">' + u.name + '</div>';
+    html += '<div class="sb-role">' + (u.role === 'manager' ? '店长' : '店员') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // Register leave
+  html += '<div class="card">';
+  html += '<div class="card-title">登记请假</div>';
+  html += '<div class="form-group"><label class="form-label">请假日期</label><input type="date" class="form-input" id="leaveDate" value="' + todayStr() + '"></div>';
+  html += '<div class="form-group"><label class="form-label">请假原因（可选）</label><input type="text" class="form-input" id="leaveReason" placeholder="如：事假、病假"></div>';
+  html += '<button class="btn btn-primary" onclick="addLeave()">登记请假</button>';
+  html += '</div>';
+
+  // Summary
+  var leaveDays = DB.getLeaveDays(state.attStaffId, state.viewYear, state.viewMonth);
+  var attendedDays = totalDays - leaveDays;
+  var user = DB.getUsers().find(function(u) { return u.id === state.attStaffId; });
+  var sa = calcSalary(state.attStaffId, state.viewYear, state.viewMonth);
+  html += '<div class="card">';
+  html += '<div class="card-title">' + (user ? user.name : '') + ' · ' + state.viewMonth + '月考勤</div>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat-card"><div class="label">当月天数</div><div class="value">' + totalDays + '</div></div>';
+  html += '<div class="stat-card"><div class="label">出勤天数</div><div class="value green">' + attendedDays + '</div></div>';
+  html += '<div class="stat-card"><div class="label">请假天数</div><div class="value red">' + leaveDays + '</div></div>';
+  html += '<div class="stat-card"><div class="label">全勤奖</div><div class="value ' + (sa.fullAttendance ? 'green' : 'red') + '">' + (sa.fullAttendance ? '+' + s.fullAttendanceBonus : '无') + '</div></div>';
+  html += '</div>';
+  html += '<div style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:14px">';
+  html += '<span style="color:var(--text2)">应发工资（底薪部分）</span>';
+  html += '<span style="font-weight:700;color:var(--green)">' + fmtMoney(sa.salary) + '</span></div>';
+  html += '</div>';
+
+  // Leave list
+  var leaves = DB.getAttendance().filter(function(a) { return a.userId === state.attStaffId && a.date.startsWith(ms); }).sort(function(a,b) { return b.date.localeCompare(a.date); });
+  html += '<div class="card">';
+  html += '<div class="card-title">请假记录 (' + leaves.length + ')</div>';
+  if (leaves.length === 0) {
+    html += '<div class="empty">本月无请假记录</div>';
+  } else {
+    leaves.forEach(function(a) {
+      html += '<div class="list-item">';
+      html += '<div class="li-left"><div class="li-title">📅 ' + a.date + '</div>';
+      html += '<div class="li-sub">' + (a.reason || '请假') + '</div></div>';
+      html += '<div class="li-right"><div class="li-del" onclick="deleteLeave(\'' + a.userId + '\',\'' + a.date + '\')">删除</div></div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function selectAttStaff(id) { state.attStaffId = id; render(); }
+
+function addLeave() {
+  var date = document.getElementById('leaveDate').value;
+  var reason = document.getElementById('leaveReason').value;
+  if (!date) { showToast('请选择日期'); return; }
+  DB.addLeave(state.attStaffId, date, reason || '');
+  showToast('已登记请假');
+  document.getElementById('leaveReason').value = '';
+  render();
+}
+
+function deleteLeave(userId, date) {
+  if (confirm('确定删除 ' + date + ' 的请假记录？')) {
+    DB.deleteLeave(userId, date);
+    showToast('已删除');
+    render();
+  }
+}
+
+// --- Commission (Boss, all staff) ---
+function renderBossCommission() {
+  var summary = calcStoreSummary(state.viewYear, state.viewMonth);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card" style="text-align:center">';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">' + state.viewMonth + '月人工成本合计</div>';
+  html += '<div style="font-size:28px;font-weight:700;color:var(--green)">提成 ' + fmtMoney(summary.totalComm) + ' + 工资 ' + fmtMoney(summary.totalSalary) + '</div>';
+  html += '</div>';
+
+  summary.staffComms.forEach(function(sc) {
+    var c = sc.comm;
+    var sa = sc.salary;
+    var user = sc.user;
+    html += '<div class="card">';
+    html += '<div class="card-title">' + user.name + ' (' + (user.role === 'manager' ? '店长' : '店员') + ')';
+    html += '<span class="badge ' + (user.role === 'manager' ? 'badge-green' : 'badge-blue') + '">提成' + fmtMoney(c.total) + ' + 工资' + fmtMoney(sa.salary) + '</span></div>';
+
+    html += '<div class="comm-detail">';
+    if (c.animal.sales > 0 || c.animal.count > 0) {
+      html += '<div class="cd-row"><span>🦎 动物销售 (' + (c.animal.rate*100) + '% × ' + c.animal.count + '笔)</span><span class="cd-val">' + fmtMoney(c.animal.comm) + '</span></div>';
+    }
+    if (c.merch.sales > 0) {
+      html += '<div class="cd-row"><span>🧸 小商品 (4% × ' + c.merch.count + '笔)</span><span class="cd-val">' + fmtMoney(c.merch.comm) + '</span></div>';
+    }
+    if (c.water.sales > 0) {
+      html += '<div class="cd-row"><span>💧 矿泉水 (4% × ' + c.water.count + '笔)</span><span class="cd-val">' + fmtMoney(c.water.comm) + '</span></div>';
+    }
+    if (c.memb.single > 0 || c.memb.double > 0) {
+      var membInfo = [];
+      if (c.memb.single > 0) membInfo.push('单人卡' + c.memb.single + '张');
+      if (c.memb.double > 0) membInfo.push('双人卡' + c.memb.double + '张');
+      html += '<div class="cd-row"><span>💳 会员卡 (' + membInfo.join(' / ') + ')</span><span class="cd-val">' + fmtMoney(c.memb.comm) + '</span></div>';
+    }
+    if (c.ticket.bonus > 0) {
+      html += '<div class="cd-row"><span>🎫 门票奖金 (' + c.ticket.detail.length + '天达标)</span><span class="cd-val">' + fmtMoney(c.ticket.bonus) + '</span></div>';
+      c.ticket.detail.forEach(function(d) {
+        html += '<div class="cd-row" style="padding-left:16px;font-size:11px"><span>  ' + d.date + ' (门票' + d.total + ')</span><span class="cd-val">' + d.bonus + '元</span></div>';
+      });
+    }
+    // Salary breakdown
+    html += '<div class="cd-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px"><span>💼 底薪 ' + fmtMoney(sa.base) + ' / ' + sa.totalDays + '天 × ' + sa.attendedDays + '天</span><span class="cd-val">' + fmtMoney(round2(sa.base / sa.totalDays * sa.attendedDays)) + '</span></div>';
+    if (sa.fullAttendance) {
+      html += '<div class="cd-row bonus"><span>🎉 全勤奖</span><span class="cd-val" style="color:var(--green)">+' + fmtMoney(sa.bonus) + '</span></div>';
+    } else {
+      html += '<div class="cd-row"><span style="color:var(--text2)">全勤奖（缺勤' + sa.leaveDays + '天）</span><span class="cd-val" style="color:var(--danger)">无</span></div>';
+    }
+    if (c.total === 0 && sa.attendedDays === 0) {
+      html += '<div class="cd-row" style="color:var(--text2)">本月无数据</div>';
+    }
+    html += '<div class="cd-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">合计应发</span><span class="cd-val" style="font-size:16px;color:var(--green)">' + fmtMoney(round2(c.total + sa.salary)) + '</span></div>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  // Rules
+  html += '<div class="card"><div class="rules-box">';
+  html += '<div class="rb-title">提成与薪资规则</div>';
+  html += '<div class="rb-item">🦎 动物销售：店长8% / 店员4%</div>';
+  html += '<div class="rb-item">🧸 小商品 / 💧 矿泉水：统一4%</div>';
+  html += '<div class="rb-item">💳 会员卡：单人卡5元/张 · 双人卡10元/张</div>';
+  var tb = DB.getSettings().ticketBonus;
+  html += '<div class="rb-item">🎫 门票奖金：日总额≥' + tb.baseAmount + '元，每人' + tb.baseBonus + '元，每增' + tb.stepAmount + '元加' + tb.stepBonus + '元</div>';
+  var s = DB.getSettings();
+  html += '<div class="rb-item">💼 底薪：店长' + s.baseSalary.manager + '元 / 店员' + s.baseSalary.clerk + '元</div>';
+  html += '<div class="rb-item">🎉 全勤奖' + s.fullAttendanceBonus + '元（缺勤则按天折算底薪，无全勤奖）</div>';
+  html += '</div></div>';
+
+  html += '</div>';
+  return html;
+}
+
+// ==================== STAFF VIEWS ====================
+function renderStaffDashboard() {
+  var user = getCurrentUser();
+  var c = calcCommission(user.id, state.viewYear, state.viewMonth);
+  var sa = calcSalary(user.id, state.viewYear, state.viewMonth);
+  var todaySales = DB.getSales().filter(function(s) { return s.userId === user.id && s.date === todayStr(); });
+  var todayTotal = todaySales.reduce(function(sum, s) { return sum + s.amount; }, 0);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">今日我的销售 <span style="font-size:12px;color:var(--text2)">' + todayStr() + '</span></div>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat-card"><div class="label">今日销售额</div><div class="value green">' + fmtMoney(todayTotal) + '</div></div>';
+  html += '<div class="stat-card"><div class="label">今日笔数</div><div class="value blue">' + todaySales.length + '</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="salary-card">';
+  html += '<div class="sc-label">' + state.viewMonth + '月 我的预计收入</div>';
+  html += '<div class="sc-total">' + fmtMoney(round2(c.total + sa.salary)) + '</div>';
+  html += '<div class="sc-row"><span>提成</span><span>' + fmtMoney(c.total) + '</span></div>';
+  html += '<div class="sc-row"><span>底薪(' + sa.attendedDays + '/' + sa.totalDays + '天' + (sa.fullAttendance ? ' · 全勤' : '') + ')</span><span>' + fmtMoney(sa.salary) + '</span></div>';
+  html += '</div>';
+
+  html += '<div class="action-grid">';
+  html += '<div class="action-btn" onclick="navigate(\'entry\')"><span class="ab-icon">💰</span><span class="ab-name">录入销售</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'records\')"><span class="ab-icon">📋</span><span class="ab-name">我的记录</span></div>';
+  html += '<div class="action-btn" onclick="navigate(\'salary\')"><span class="ab-icon">🏆</span><span class="ab-name">薪资明细</span></div>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function renderStaffEntry() {
+  var user = getCurrentUser();
+  var html = '<div class="content">';
+  html += '<div class="card">';
+  html += '<div class="card-title">录入我的销售 · ' + user.name + '</div>';
+
+  html += '<label class="form-label">销售类别</label>';
+  html += '<div class="cat-grid">';
+  Object.keys(CATEGORIES).forEach(function(key) {
+    var cat = CATEGORIES[key];
+    html += '<div class="cat-btn' + (state.saleCategory === key ? ' active' : '') + '" onclick="selectCategory(\'' + key + '\')">';
+    html += '<span class="cat-icon">' + cat.icon + '</span><span class="cat-name">' + cat.name + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  if (state.saleCategory === 'membership') {
+    html += '<label class="form-label">会员卡类型</label>';
+    html += '<div class="sub-cat-row">';
+    html += '<div class="sub-cat-btn' + (state.saleSubCategory === 'single' ? ' active' : '') + '" onclick="selectSubCategory(\'single\')">单人10次卡</div>';
+    html += '<div class="sub-cat-btn' + (state.saleSubCategory === 'double' ? ' active' : '') + '" onclick="selectSubCategory(\'double\')">双人10次卡</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + todayStr() + '"></div>';
+
+  if (state.saleCategory === 'membership') {
+    html += '<div class="form-group"><label class="form-label">售出数量（张）</label><input type="number" class="form-input" id="saleQty" value="1" min="1" placeholder="数量"></div>';
+  } else {
+    html += '<div class="form-group"><label class="form-label">金额（元）</label><input type="number" class="form-input" id="saleAmount" placeholder="0.00" step="0.01"></div>';
+  }
+
+  html += '<div class="form-group"><label class="form-label">备注（可选）</label><input type="text" class="form-input" id="saleNote" placeholder="如：仓鼠、蜥蜴等"></div>';
+  html += '<button class="btn btn-primary" onclick="addStaffSale()">添加记录</button>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function addStaffSale() {
+  var user = getCurrentUser();
+  var date = document.getElementById('saleDate').value;
+  if (!date) { showToast('请选择日期'); return; }
+  var sale = {
+    userId: user.id,
+    date: date,
+    category: state.saleCategory,
+    amount: 0,
+    quantity: 1,
+    note: (document.getElementById('saleNote') || {value:''}).value || ''
+  };
+  if (state.saleCategory === 'membership') {
+    sale.subCategory = state.saleSubCategory;
+    sale.quantity = parseInt(document.getElementById('saleQty').value) || 1;
+    sale.amount = 0;
+  } else {
+    var amount = parseFloat(document.getElementById('saleAmount').value);
+    if (!amount || amount <= 0) { showToast('请输入金额'); return; }
+    sale.amount = amount;
+  }
+  DB.addSale(sale);
+  showToast('已添加');
+  if (state.saleCategory !== 'membership') document.getElementById('saleAmount').value = '';
+  document.getElementById('saleNote').value = '';
+  render();
+}
+
+function renderStaffRecords() {
+  var user = getCurrentUser();
+  var ms = monthStr(state.viewYear, state.viewMonth);
+  var monthSales = DB.getSales().filter(function(s) { return s.userId === user.id && s.date.startsWith(ms); }).sort(function(a,b) { return b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt); });
+  var total = monthSales.reduce(function(sum, s) {
+    if (s.category === 'membership') return sum;
+    return sum + s.amount;
+  }, 0);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="card">';
+  html += '<div class="card-title">' + state.viewMonth + '月 我的销售 (' + monthSales.length + '笔)</div>';
+  html += '<div style="font-size:13px;color:var(--text2);margin-bottom:8px">商品类合计：' + fmtMoney(total) + '（不含会员卡张数）</div>';
+  if (monthSales.length === 0) {
+    html += '<div class="empty">暂无记录</div>';
+  } else {
+    monthSales.forEach(function(s) {
+      var cat = CATEGORIES[s.category] || { name: s.category, icon: '' };
+      var subInfo = s.subCategory ? ' (' + (SUB_CATEGORIES[s.subCategory] || {name: s.subCategory}).name + ')' : '';
+      html += '<div class="list-item">';
+      html += '<div class="li-left">';
+      html += '<div class="li-title">' + cat.icon + ' ' + cat.name + subInfo + '</div>';
+      html += '<div class="li-sub">' + s.date + (s.note ? ' · ' + s.note : '') + '</div>';
+      html += '</div>';
+      html += '<div class="li-right">';
+      var displayAmount = s.category === 'membership' ? s.quantity + '张' : fmtMoney(s.amount);
+      html += '<div class="li-amount">' + displayAmount + '</div>';
+      html += '<div class="li-del" onclick="deleteSale(\'' + s.id + '\')">删除</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function renderStaffSalary() {
+  var user = getCurrentUser();
+  var c = calcCommission(user.id, state.viewYear, state.viewMonth);
+  var sa = calcSalary(user.id, state.viewYear, state.viewMonth);
+
+  var html = '<div class="content">';
+  html += renderMonthBar();
+
+  html += '<div class="salary-card">';
+  html += '<div class="sc-label">' + state.viewMonth + '月 应发收入</div>';
+  html += '<div class="sc-total">' + fmtMoney(round2(c.total + sa.salary)) + '</div>';
+  html += '<div class="sc-row"><span>提成合计</span><span>' + fmtMoney(c.total) + '</span></div>';
+  html += '<div class="sc-row"><span>底薪（' + sa.attendedDays + '/' + sa.totalDays + '天）</span><span>' + fmtMoney(round2(sa.base / sa.totalDays * sa.attendedDays)) + '</span></div>';
+  html += '<div class="sc-row bonus"><span>' + (sa.fullAttendance ? '全勤奖' : '全勤奖（缺勤' + sa.leaveDays + '天）') + '</span><span>' + (sa.fullAttendance ? '+' + fmtMoney(sa.bonus) : '无') + '</span></div>';
+  html += '</div>';
+
+  // Commission detail
+  html += '<div class="card">';
+  html += '<div class="card-title">提成明细</div>';
+  html += '<div class="comm-detail">';
+  if (c.animal.count > 0) html += '<div class="cd-row"><span>🦎 动物销售 (' + (c.animal.rate*100) + '% × ' + c.animal.count + '笔)</span><span class="cd-val">' + fmtMoney(c.animal.comm) + '</span></div>';
+  if (c.merch.count > 0) html += '<div class="cd-row"><span>🧸 小商品 (4% × ' + c.merch.count + '笔)</span><span class="cd-val">' + fmtMoney(c.merch.comm) + '</span></div>';
+  if (c.water.count > 0) html += '<div class="cd-row"><span>💧 矿泉水 (4% × ' + c.water.count + '笔)</span><span class="cd-val">' + fmtMoney(c.water.comm) + '</span></div>';
+  if (c.memb.single > 0 || c.memb.double > 0) {
+    var info = [];
+    if (c.memb.single > 0) info.push('单人' + c.memb.single + '张');
+    if (c.memb.double > 0) info.push('双人' + c.memb.double + '张');
+    html += '<div class="cd-row"><span>💳 会员卡 (' + info.join('/') + ')</span><span class="cd-val">' + fmtMoney(c.memb.comm) + '</span></div>';
+  }
+  if (c.ticket.bonus > 0) {
+    html += '<div class="cd-row"><span>🎫 门票奖金 (' + c.ticket.detail.length + '天)</span><span class="cd-val">' + fmtMoney(c.ticket.bonus) + '</span></div>';
+  }
+  html += '<div class="cd-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">提成小计</span><span class="cd-val" style="font-size:16px;color:var(--green)">' + fmtMoney(c.total) + '</span></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Attendance
+  html += '<div class="card">';
+  html += '<div class="card-title">考勤与薪资</div>';
+  html += '<div class="comm-detail">';
+  html += '<div class="cd-row"><span>底薪基数（' + (user.role === 'manager' ? '店长' : '店员') + '）</span><span class="cd-val">' + fmtMoney(sa.base) + '</span></div>';
+  html += '<div class="cd-row"><span>当月天数</span><span class="cd-val">' + sa.totalDays + '天</span></div>';
+  html += '<div class="cd-row"><span>出勤天数</span><span class="cd-val">' + sa.attendedDays + '天</span></div>';
+  html += '<div class="cd-row"><span>请假天数</span><span class="cd-val" style="color:var(--danger)">' + sa.leaveDays + '天</span></div>';
+  html += '<div class="cd-row"><span>底薪折算</span><span class="cd-val">' + fmtMoney(round2(sa.base / sa.totalDays * sa.attendedDays)) + '</span></div>';
+  html += '<div class="cd-row"><span>全勤奖</span><span class="cd-val" style="color:' + (sa.fullAttendance ? 'var(--green)' : 'var(--danger)') + '">' + (sa.fullAttendance ? '+' + fmtMoney(sa.bonus) : '无') + '</span></div>';
+  html += '<div class="cd-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">工资小计</span><span class="cd-val" style="font-size:16px;color:var(--green)">' + fmtMoney(sa.salary) + '</span></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Leave registration
+  html += '<div class="card">';
+  html += '<div class="card-title">我要请假</div>';
+  html += '<div class="form-group"><label class="form-label">请假日期</label><input type="date" class="form-input" id="myLeaveDate" value="' + todayStr() + '"></div>';
+  html += '<div class="form-group"><label class="form-label">原因（可选）</label><input type="text" class="form-input" id="myLeaveReason" placeholder="如：事假"></div>';
+  html += '<button class="btn btn-secondary" onclick="addMyLeave()">提交请假</button>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function addMyLeave() {
+  var user = getCurrentUser();
+  var date = document.getElementById('myLeaveDate').value;
+  var reason = document.getElementById('myLeaveReason').value;
+  if (!date) { showToast('请选择日期'); return; }
+  DB.addLeave(user.id, date, reason || '');
+  showToast('请假已提交');
+  render();
+}
+
+// --- Settings / Backup ---
+function renderSettings() {
+  var s = DB.getSettings();
+  var html = '<div class="content">';
+
+  html += '<div class="backup-card">';
+  html += '<div class="bc-title">⚠️ 数据备份</div>';
+  html += '<div class="bc-text">数据保存在浏览器本地，清除浏览器数据会导致丢失。建议定期导出备份文件到手机/电脑保存。</div>';
+  html += '<button class="btn btn-primary" style="margin-bottom:8px" onclick="exportData()">导出备份文件</button>';
+  html += '<button class="btn btn-secondary" onclick="document.getElementById(\'importFile\').click()">导入备份文件</button>';
+  html += '<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">店铺设置</div>';
+  html += '<div class="form-group"><label class="form-label">店铺名称</label><input type="text" class="form-input" id="setStoreName" value="' + s.storeName + '"></div>';
+  html += '<div class="form-group"><label class="form-label">每月房租（元）</label><input type="number" class="form-input" id="setRent" value="' + s.rentAmount + '" step="0.01"></div>';
+  html += '<button class="btn btn-primary" onclick="saveSettings()">保存设置</button>';
+  html += '</div>';
+
+  // Salary settings
+  html += '<div class="card">';
+  html += '<div class="card-title">薪资设置</div>';
+  html += '<div class="form-row">';
+  html += '<div class="form-group"><label class="form-label">店长底薪（元）</label><input type="number" class="form-input" id="setMgrBase" value="' + s.baseSalary.manager + '"></div>';
+  html += '<div class="form-group"><label class="form-label">店员底薪（元）</label><input type="number" class="form-input" id="setClerkBase" value="' + s.baseSalary.clerk + '"></div>';
+  html += '</div>';
+  html += '<div class="form-group"><label class="form-label">全勤奖（元）</label><input type="number" class="form-input" id="setBonus" value="' + s.fullAttendanceBonus + '"></div>';
+  html += '<button class="btn btn-primary" onclick="saveSalarySettings()">保存薪资设置</button>';
+  html += '</div>';
+
+  // Staff management
+  html += '<div class="card">';
+  html += '<div class="card-title">员工管理</div>';
+  DB.getUsers().forEach(function(u, i) {
+    html += '<div class="list-item"><div class="li-left">';
+    html += '<input type="text" class="form-input" style="padding:6px 8px" id="staffName_' + i + '" value="' + u.name + '">';
+    html += '<select class="form-select" style="padding:6px 8px;margin-top:4px;width:100px" id="staffRole_' + i + '">';
+    html += '<option value="manager"' + (u.role === 'manager' ? ' selected' : '') + '>店长</option>';
+    html += '<option value="clerk"' + (u.role === 'clerk' ? ' selected' : '') + '>店员</option>';
+    html += '</select></div></div>';
+  });
+  html += '<button class="btn btn-secondary" style="margin-top:8px" onclick="saveStaff()">保存员工信息</button>';
+  html += '</div>';
+
+  // PIN management
+  html += '<div class="card">';
+  html += '<div class="card-title">登录密码（PIN）</div>';
+  html += '<div class="form-group"><label class="form-label">老板 PIN</label><input type="text" class="form-input" id="pinBoss" maxlength="6" inputmode="numeric" value="' + (s.bossPin || '0000') + '"></div>';
+  DB.getUsers().forEach(function(u, i) {
+    html += '<div class="form-group"><label class="form-label">' + u.name + ' PIN</label><input type="text" class="form-input" id="pin_' + i + '" maxlength="6" inputmode="numeric" value="' + (u.pin || '') + '"></div>';
+  });
+  html += '<button class="btn btn-primary" onclick="savePins()">保存 PIN</button>';
+  html += '</div>';
+
+  // Ticket bonus settings
+  html += '<div class="card">';
+  html += '<div class="card-title">门票奖金设置</div>';
+  var tb = s.ticketBonus;
+  html += '<div class="form-row">';
+  html += '<div class="form-group"><label class="form-label">达标门槛（元）</label><input type="number" class="form-input" id="tbBase" value="' + tb.baseAmount + '"></div>';
+  html += '<div class="form-group"><label class="form-label">基础奖金（元）</label><input type="number" class="form-input" id="tbBonus" value="' + tb.baseBonus + '"></div>';
+  html += '</div>';
+  html += '<div class="form-row">';
+  html += '<div class="form-group"><label class="form-label">递增额度（元）</label><input type="number" class="form-input" id="tbStep" value="' + tb.stepAmount + '"></div>';
+  html += '<div class="form-group"><label class="form-label">递增奖金（元）</label><input type="number" class="form-input" id="tbStepBonus" value="' + tb.stepBonus + '"></div>';
+  html += '</div>';
+  html += '<button class="btn btn-primary" onclick="saveTicketBonus()">保存奖金设置</button>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title">数据统计</div>';
+  html += '<div class="list-item"><div class="li-left"><div class="li-title">销售记录</div></div><div class="li-right"><div class="li-amount">' + DB.getSales().length + '条</div></div></div>';
+  html += '<div class="list-item"><div class="li-left"><div class="li-title">成本记录</div></div><div class="li-right"><div class="li-amount">' + DB.getCosts().length + '条</div></div></div>';
+  html += '<div class="list-item"><div class="li-left"><div class="li-title">门票记录</div></div><div class="li-right"><div class="li-amount">' + DB.getTickets().length + '天</div></div></div>';
+  html += '<div class="list-item"><div class="li-left"><div class="li-title">请假记录</div></div><div class="li-right"><div class="li-amount">' + DB.getAttendance().length + '条</div></div></div>';
+  html += '</div>';
+
+  // Cloud config card (boss only)
+  html += '<div class="card">';
+  html += '<div class="card-title">云端同步配置</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">当前已连接 Supabase 云端数据库，4 部手机数据自动同步。如需更换项目，可点击下方修改。</div>';
+  html += '<button class="btn btn-secondary" style="width:100%" onclick="state.forceConfig=true; render();">修改云端配置</button>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="card-title" style="color:var(--danger)">⚠️ 危险操作</div>';
+  html += '<button class="btn btn-danger" onclick="clearAllData()">清空所有数据</button>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function saveSettings() {
+  var s = DB.getSettings();
+  s.storeName = document.getElementById('setStoreName').value || '尼克奇宠';
+  s.rentAmount = parseFloat(document.getElementById('setRent').value) || 5000;
+  DB.updateSettings(s);
+  showToast('设置已保存');
+  render();
+}
+
+function saveSalarySettings() {
+  var s = DB.getSettings();
+  s.baseSalary = {
+    manager: parseFloat(document.getElementById('setMgrBase').value) || 2800,
+    clerk: parseFloat(document.getElementById('setClerkBase').value) || 2400
+  };
+  s.fullAttendanceBonus = parseFloat(document.getElementById('setBonus').value) || 200;
+  DB.updateSettings(s);
+  showToast('薪资设置已保存');
+  render();
+}
+
+function saveStaff() {
+  var users = DB.getUsers();
+  users.forEach(function(u, i) {
+    var nameEl = document.getElementById('staffName_' + i);
+    var roleEl = document.getElementById('staffRole_' + i);
+    if (nameEl) u.name = nameEl.value;
+    if (roleEl) u.role = roleEl.value;
+    DB.pushUpsert('nkcq_users', { id: u.id, name: u.name, role: u.role, pin: u.pin });
+  });
+  DB.save();
+  showToast('员工信息已保存');
+  render();
+}
+
+function savePins() {
+  var s = DB.getSettings();
+  s.bossPin = (document.getElementById('pinBoss').value || '').trim() || '0000';
+  DB.getUsers().forEach(function(u, i) {
+    var el = document.getElementById('pin_' + i);
+    if (el) u.pin = (el.value || '').trim() || '0000';
+    DB.pushUpsert('nkcq_users', { id: u.id, name: u.name, role: u.role, pin: u.pin });
+  });
+  DB.updateSettings(s);
+  showToast('PIN 已保存');
+  render();
+}
+
+function saveTicketBonus() {
+  var s = DB.getSettings();
+  s.ticketBonus = {
+    baseAmount: parseFloat(document.getElementById('tbBase').value) || 2000,
+    baseBonus: parseFloat(document.getElementById('tbBonus').value) || 5,
+    stepAmount: parseFloat(document.getElementById('tbStep').value) || 500,
+    stepBonus: parseFloat(document.getElementById('tbStepBonus').value) || 5
+  };
+  DB.updateSettings(s);
+  showToast('奖金设置已保存');
+  render();
+}
+
+function exportData() {
+  var data = DB.exportData();
+  var blob = new Blob([data], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '尼克奇宠记账备份_' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('备份已导出');
+}
+
+function importData(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      if (confirm('导入将覆盖现有所有数据，确定继续？')) {
+        DB.importData(e.target.result);
+        showToast('导入成功');
+        render();
+      }
+    } catch(err) {
+      showToast('导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (confirm('确定清空所有数据？此操作不可恢复！')) {
+    if (confirm('再次确认：所有销售、成本、门票、考勤记录都将被删除！')) {
+      DB.clearAll();
+      state.currentUserId = null;
+      showToast('已清空');
+      render();
+    }
+  }
+}
+
+// ==================== INIT ====================
+DB.init();
+if (DB.sbConfigured) {
+  // Pull latest cloud data so this phone sees others' entries
+  DB.connect().then(function(){ render(); }).catch(function(e){ console.warn('connect failed', e); render(); });
+} else {
+  render();
+}
+</script>
+</body>
+</html>
