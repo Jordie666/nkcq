@@ -177,7 +177,7 @@ button{cursor:pointer;background:none}
 // ==================== DATA LAYER (localStorage + Supabase sync) ====================
 var STORAGE_KEY = 'nkcq_accounting_v2';
 var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
-var APP_VER = '20260801-sync3'; // 版本号：变更后手机自动强制刷新，避免缓存
+var APP_VER = '20260804-staff'; // 版本号：变更后手机自动强制刷新，避免缓存
 (function(){
   // 强制刷新缓存：版本变化或参数带 refresh 时 reload
   try {
@@ -1714,15 +1714,19 @@ function renderSettings() {
   // Staff management
   html += '<div class="card">';
   html += '<div class="card-title">员工管理</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">可新增 / 删除员工。删除后其历史销售与提成记录仍保留，但无法再用该身份登录。店员数量不限。</div>';
   DB.getUsers().forEach(function(u, i) {
     html += '<div class="list-item"><div class="li-left">';
     html += '<input type="text" class="form-input" style="padding:6px 8px" id="staffName_' + i + '" value="' + u.name + '">';
     html += '<select class="form-select" style="padding:6px 8px;margin-top:4px;width:100px" id="staffRole_' + i + '">';
     html += '<option value="manager"' + (u.role === 'manager' ? ' selected' : '') + '>店长</option>';
     html += '<option value="clerk"' + (u.role === 'clerk' ? ' selected' : '') + '>店员</option>';
-    html += '</select></div></div>';
+    html += '</select></div>';
+    html += '<div class="li-right"><div style="color:var(--danger);cursor:pointer;font-size:13px" onclick="deleteStaff(\'' + u.id + '\')">删除</div></div>';
+    html += '</div>';
   });
-  html += '<button class="btn btn-secondary" style="margin-top:8px" onclick="saveStaff()">保存员工信息</button>';
+  html += '<button class="btn btn-secondary" style="margin-top:8px;margin-right:8px" onclick="addStaff()">➕ 添加员工</button>';
+  html += '<button class="btn btn-primary" style="margin-top:8px" onclick="saveStaff()">保存</button>';
   html += '</div>';
 
   // PIN management
@@ -1806,6 +1810,43 @@ function saveStaff() {
   });
   DB.save();
   showToast('员工信息已保存');
+  render();
+}
+
+// 先把表单里已修改的名字/角色同步回内存，避免新增/删除时丢失未保存的编辑
+function syncStaffFromForm() {
+  var users = DB.getUsers();
+  users.forEach(function(u, i) {
+    var nameEl = document.getElementById('staffName_' + i);
+    var roleEl = document.getElementById('staffRole_' + i);
+    if (nameEl) u.name = nameEl.value;
+    if (roleEl) u.role = roleEl.value;
+  });
+}
+
+async function addStaff() {
+  syncStaffFromForm();
+  var users = DB.getUsers();
+  var id = 'clerk_' + Date.now();
+  var nu = { id: id, name: '新员工', role: 'clerk', pin: '0000' };
+  users.push(nu);
+  DB.save();
+  await DB.pushUpsert('nkcq_users', nu);
+  showToast('已添加新员工，请在下方「登录密码」设置 PIN');
+  render();
+}
+
+async function deleteStaff(id) {
+  if (!confirm('确定删除该员工？\n其历史销售与提成记录仍会保留，但无法再用该身份登录。')) return;
+  syncStaffFromForm();
+  var users = DB.getUsers();
+  var idx = -1;
+  for (var i = 0; i < users.length; i++) { if (users[i].id === id) { idx = i; break; } }
+  if (idx < 0) return;
+  users.splice(idx, 1);
+  DB.save();
+  await DB.pushDelete('nkcq_users', id);
+  showToast('已删除员工');
   render();
 }
 
