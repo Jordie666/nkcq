@@ -186,7 +186,7 @@ button{cursor:pointer;background:none}
 // ==================== DATA LAYER (localStorage + Supabase sync) ====================
 var STORAGE_KEY = 'nkcq_accounting_v2';
 var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
-var APP_VER = '20260804-syncbtn'; // 版本号：变更后手机自动强制刷新，避免缓存
+var APP_VER = '20260804-sync2'; // 版本号：变更后手机自动强制刷新，避免缓存
 (function(){
   // 强制刷新缓存：版本变化或参数带 refresh 时 reload
   try {
@@ -313,11 +313,18 @@ var DB = {
   // Union local + remote by id; upload local-only records so nothing is lost
   syncTable(key, remoteArr) {
     var remoteIds = {};
-    var localIds = {};
-    this.data[key].forEach(function(r) { localIds[r.id] = true; });
+    var localById = {};
+    this.data[key].forEach(function(r) { localById[r.id] = r; });
     (remoteArr || []).forEach(function(r) {
       remoteIds[r.id] = true;
-      if (!localIds[r.id]) this.data[key].push(r);
+      if (!localById[r.id]) {
+        // 云端有、本地没有 -> 拉下来
+        this.data[key].push(r);
+      } else {
+        // 云端和本地都有 -> 以云端为准（审批状态等需跨手机同步）
+        var idx = this.data[key].indexOf(localById[r.id]);
+        this.data[key][idx] = r;
+      }
     }.bind(this));
     var self = this;
     this.data[key].forEach(function(r) {
