@@ -186,7 +186,7 @@ button{cursor:pointer;background:none}
 // ==================== DATA LAYER (localStorage + Supabase sync) ====================
 var STORAGE_KEY = 'nkcq_accounting_v2';
 var SB_CONFIG_KEY = 'nkcq_sb_config_v1';
-var APP_VER = '20260804-sync4'; // 版本号：变更后手机自动强制刷新，避免缓存
+var APP_VER = '20260804-sync5'; // 版本号：变更后手机自动强制刷新，避免缓存
 (function(){
   // 强制刷新缓存：版本变化或参数带 refresh 时 reload
   try {
@@ -605,20 +605,23 @@ function calcCommission(userId, year, month) {
   var doubleCount = doubleCards.reduce(function(sum, s) { return sum + (s.quantity || 1); }, 0);
   var membComm = singleCount * 5 + doubleCount * 10;
 
-  // Ticket bonus
+  // Ticket bonus: 团队目标达成后，当天在岗（未批准请假）的员工都有奖金
   var ticketData = DB.getTickets().filter(function(d) { return d.date.startsWith(ms); });
-  var userWorkDates = {};
-  monthSales.forEach(function(s) { userWorkDates[s.date] = true; });
   var ticketBonus = 0;
   var ticketDetail = [];
   var settings = DB.getSettings();
   var tb = settings.ticketBonus;
   ticketData.forEach(function(d) {
     var total = (d.wechat||0) + (d.alipay||0) + (d.douyin||0) + (d.cash||0);
-    if (total >= tb.baseAmount && userWorkDates[d.date]) {
-      var bonus = tb.baseBonus * (1 + Math.floor((total - tb.baseAmount) / tb.stepAmount));
-      ticketBonus += bonus;
-      ticketDetail.push({ date: d.date, total: total, bonus: bonus });
+    if (total >= tb.baseAmount) {
+      var onLeave = DB.getAttendance().some(function(a) {
+        return a.userId === userId && a.date === d.date && (a.status === 'approved' || a.status == null);
+      });
+      if (!onLeave) {
+        var bonus = tb.baseBonus * (1 + Math.floor((total - tb.baseAmount) / tb.stepAmount));
+        ticketBonus += bonus;
+        ticketDetail.push({ date: d.date, total: total, bonus: bonus });
+      }
     }
   });
 
@@ -1054,7 +1057,7 @@ function renderBossSales() {
     html += '</div>';
   }
 
-  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + state.selectedDate + '"></div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + state.selectedDate + '" onchange="state.selectedDate=this.value"></div>';
 
   if (state.saleCategory === 'membership') {
     html += '<div class="form-group"><label class="form-label">售出数量（张）</label><input type="number" class="form-input" id="saleQty" value="1" min="1" placeholder="数量"></div>';
@@ -1145,7 +1148,7 @@ function renderCosts() {
 
   html += '<div class="card">';
   html += '<div class="card-title">录入成本</div>';
-  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="costDate" value="' + todayStr() + '"></div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="costDate" value="' + state.selectedDate + '" onchange="state.selectedDate=this.value"></div>';
 
   html += '<label class="form-label">成本类别</label>';
   html += '<div class="cat-grid">';
@@ -1229,7 +1232,7 @@ function renderTickets() {
 
   html += '<div class="card">';
   html += '<div class="card-title">录入每日门票</div>';
-  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="ticketDate" value="' + todayStr() + '"></div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="ticketDate" value="' + state.selectedDate + '" onchange="state.selectedDate=this.value"></div>';
 
   var existing = DB.getTickets().find(function(t) { return t.date === document.getElementById && false; });
   var tf = { wechat: '', alipay: '', douyin: '', cash: '' };
@@ -1605,7 +1608,7 @@ function renderStaffEntry() {
     html += '</div>';
   }
 
-  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + todayStr() + '"></div>';
+  html += '<div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="saleDate" value="' + state.selectedDate + '" onchange="state.selectedDate=this.value"></div>';
 
   if (state.saleCategory === 'membership') {
     html += '<div class="form-group"><label class="form-label">售出数量（张）</label><input type="number" class="form-input" id="saleQty" value="1" min="1" placeholder="数量"></div>';
